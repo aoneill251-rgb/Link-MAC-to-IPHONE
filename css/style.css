@@ -2,14 +2,14 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --clr-primary: #1a1a2e;
-  --clr-accent: #c9a96e;
-  --clr-accent-dark: #a8844d;
-  --clr-bg: #faf9f7;
-  --clr-bg-alt: #f3f0eb;
-  --clr-text: #2d2d2d;
-  --clr-muted: #6b6b6b;
-  --clr-border: #e0dbd2;
+  --clr-primary: #18100f;
+  --clr-accent: #c4837a;
+  --clr-accent-dark: #a86860;
+  --clr-bg: #fef8f7;
+  --clr-bg-alt: #f7eeec;
+  --clr-text: #2a1a18;
+  --clr-muted: #7a6360;
+  --clr-border: #e8d5d2;
   --clr-success: #2d6a4f;
   --clr-error: #c0392b;
   --font-serif: 'Playfair Display', Georgia, serif;
@@ -124,13 +124,13 @@ p:last-child { margin-bottom: 0; }
 .hero {
   position: relative; min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #1a1a2e 0%, #2d2d4e 50%, #1a1a2e 100%);
+  background: linear-gradient(135deg, #18100f 0%, #2d1a18 50%, #18100f 100%);
   padding-top: var(--nav-h);
   text-align: center;
 }
 .hero__overlay {
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse at center, rgba(201,169,110,.12) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(196,131,122,.18) 0%, transparent 70%);
 }
 .hero__content { position: relative; max-width: 700px; padding: 2rem 1.5rem; }
 .hero__tagline {
@@ -340,6 +340,23 @@ textarea { resize: vertical; }
 .prose ul { padding-left: 1.5rem; color: var(--clr-muted); margin-bottom: 1rem; }
 .prose ul li { margin-bottom: .4rem; }
 .prose p { margin-bottom: 1rem; }
+
+/* ========== REVIEWS ========== */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+.review-card {
+  background: var(--clr-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  display: flex; flex-direction: column; gap: .75rem;
+}
+.review-card__stars { color: var(--clr-accent); font-size: 1.1rem; letter-spacing: .1em; }
+.review-card p { font-size: .92rem; margin: 0; flex: 1; }
+.review-card__author { font-weight: 600; color: var(--clr-text) !important; font-size: .82rem !important; }
 
 /* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
