@@ -201,12 +201,57 @@ p:last-child { margin-bottom: 0; }
   gap: 2rem;
 }
 .team-card { text-align: center; }
-.team-card__photo {
+
+.team-card__photo-wrap {
   width: 160px; height: 160px; border-radius: 50%;
   margin: 0 auto 1.25rem;
+  overflow: hidden;
+  background: var(--clr-border);
+  display: flex; align-items: center; justify-content: center;
 }
+.team-card__photo {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top center;
+  display: block;
+}
+.team-card__initials {
+  font-family: var(--font-serif); font-size: 2.5rem; font-weight: 700;
+  color: #fff; background: var(--clr-accent);
+  width: 100%; height: 100%; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
+}
+
 .team-card__role { font-size: .85rem; font-weight: 600; color: var(--clr-accent); margin-bottom: .5rem; }
 .team-card h3 { margin-bottom: .25rem; }
+
+/* ========== BOOK DIRECT ========== */
+.book-direct {
+  max-width: 720px; margin: 0 auto 1.5rem;
+  padding: 1.5rem 2rem;
+  background: var(--clr-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.book-direct__text strong { display: block; color: var(--clr-text); margin-bottom: .2rem; }
+.book-direct__text p { margin: 0; font-size: .9rem; }
+.book-direct__divider {
+  max-width: 720px; margin: 0 auto 2rem;
+  text-align: center; position: relative;
+}
+.book-direct__divider::before {
+  content: ''; position: absolute;
+  top: 50%; left: 0; right: 0; height: 1px;
+  background: var(--clr-border);
+}
+.book-direct__divider span {
+  position: relative; background: var(--clr-bg-alt);
+  padding: 0 1rem; font-size: .78rem;
+  color: var(--clr-muted); text-transform: uppercase;
+  letter-spacing: .1em;
+}
 
 /* ========== LOCATION ========== */
 .location-details { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 1.5rem; }

@@ -135,24 +135,51 @@
         <p>Our experienced team is here to bring your vision to life.</p>
       </div>
       <div class="team-grid">
+
+        <!-- ── TEAM MEMBER: update name, role, bio, and photo src below ── -->
         <div class="team-card">
-          <div class="team-card__photo image-placeholder"><span>Photo</span></div>
+          <div class="team-card__photo-wrap">
+            <!-- Place photo at images/team/sarah.jpg to display it -->
+            <img src="images/team/sarah.jpg"
+                 alt="SM"
+                 data-initials="SM"
+                 class="team-card__photo" />
+          </div>
           <h3>Sarah Murphy</h3>
           <p class="team-card__role">Senior Stylist &amp; Colourist</p>
           <p>12 years experience. Specialist in balayage and creative colour.</p>
         </div>
+
+        <!-- ── TEAM MEMBER ── -->
         <div class="team-card">
-          <div class="team-card__photo image-placeholder"><span>Photo</span></div>
+          <div class="team-card__photo-wrap">
+            <!-- Place photo at images/team/emma.jpg to display it -->
+            <img src="images/team/emma.jpg"
+                 alt="EK"
+                 data-initials="EK"
+                 class="team-card__photo" />
+          </div>
           <h3>Emma Kelly</h3>
           <p class="team-card__role">Senior Stylist</p>
           <p>8 years experience. Expert in precision cuts and bridal styling.</p>
         </div>
+
+        <!-- ── TEAM MEMBER ── -->
         <div class="team-card">
-          <div class="team-card__photo image-placeholder"><span>Photo</span></div>
+          <div class="team-card__photo-wrap">
+            <!-- Place photo at images/team/aoife.jpg to display it -->
+            <img src="images/team/aoife.jpg"
+                 alt="AO"
+                 data-initials="AO"
+                 class="team-card__photo" />
+          </div>
           <h3>Aoife O'Brien</h3>
           <p class="team-card__role">Stylist</p>
           <p>5 years experience. Passionate about modern cuts and treatments.</p>
         </div>
+
+        <!-- ── ADD MORE TEAM MEMBERS: copy the block above and update ── -->
+
       </div>
     </div>
   </section>
@@ -202,9 +229,25 @@
       <div class="section-header">
         <span class="label">Get in Touch</span>
         <h2>Book an Appointment</h2>
-        <p>Fill in the form below and we'll confirm your booking within 24 hours.</p>
+        <p>Pick a time directly in our calendar, or fill in the form and we'll confirm within 24 hours.</p>
       </div>
-      <form class="booking-form" id="bookingForm" novalidate>
+
+      <!-- "Book Direct" button — replace # with your Calendly / Google Calendar / Outlook booking link -->
+      <div class="book-direct">
+        <div class="book-direct__text">
+          <strong>Book straight into our calendar</strong>
+          <p>See live availability and confirm your slot instantly.</p>
+        </div>
+        <a href="#" class="btn btn--primary book-direct__btn" target="_blank" rel="noopener">
+          Choose a Time Slot &rarr;
+        </a>
+      </div>
+      <div class="book-direct__divider"><span>or request via the form below</span></div>
+
+      <!-- Netlify Forms: submissions are emailed to you via your Netlify dashboard -->
+      <form class="booking-form" id="bookingForm" novalidate
+            name="booking" method="POST" data-netlify="true">
+        <input type="hidden" name="form-name" value="booking" />
         <div class="form-row">
           <div class="form-group">
             <label for="firstName">First Name *</label>
@@ -248,6 +291,27 @@
             <span class="form-error" id="preferredDateError"></span>
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="stylist">Preferred Stylist</label>
+            <!-- Keep this list in sync with the Team section above -->
+            <select id="stylist" name="stylist">
+              <option value="">No preference</option>
+              <option value="sarah-murphy">Sarah Murphy</option>
+              <option value="emma-kelly">Emma Kelly</option>
+              <option value="aoife-obrien">Aoife O'Brien</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="preferredTime">Preferred Time</label>
+            <select id="preferredTime" name="preferredTime">
+              <option value="">Any time</option>
+              <option value="morning">Morning (9am – 12pm)</option>
+              <option value="afternoon">Afternoon (12pm – 4pm)</option>
+              <option value="evening">Evening (4pm – 8pm)</option>
+            </select>
+          </div>
+        </div>
         <div class="form-group">
           <label for="message">Additional Notes</label>
           <textarea id="message" name="message" rows="4" placeholder="Let us know anything that would help us prepare for your visit…"></textarea>
@@ -259,7 +323,7 @@
           </label>
           <span class="form-error" id="gdprError"></span>
         </div>
-        <button type="submit" class="btn btn--primary btn--full">Send Booking Request</button>
+        <button type="submit" class="btn btn--primary btn--full" id="submitBtn">Send Booking Request</button>
         <div class="form-success" id="formSuccess" style="display:none;">
           <strong>Thank you!</strong> We've received your booking request and will be in touch within 24 hours to confirm your appointment.
         </div>

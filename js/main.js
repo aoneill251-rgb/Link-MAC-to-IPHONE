@@ -98,13 +98,43 @@ function validateForm() {
 }
 
 function submitForm() {
-  // In production, replace this with a real form submission (e.g. Netlify Forms, Formspree, or a backend endpoint)
   const form = document.getElementById('bookingForm');
   const success = document.getElementById('formSuccess');
-  if (form && success) {
-    form.style.opacity = '.4';
-    form.style.pointerEvents = 'none';
-    success.style.display = 'block';
-    success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  const submitBtn = document.getElementById('submitBtn');
+
+  if (!form) return;
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
   }
+
+  fetch('/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(new FormData(form)).toString()
+  })
+    .then(() => {
+      form.style.display = 'none';
+      if (success) {
+        success.style.display = 'block';
+        success.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    })
+    .catch(() => {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Booking Request';
+      }
+      alert('Something went wrong — please try again or contact us directly.');
+    });
 }
+
+// Team photo fallback — shows initials when no photo is uploaded yet
+document.querySelectorAll('.team-card__photo').forEach(img => {
+  img.addEventListener('error', function () {
+    const initials = this.dataset.initials || this.alt || '?';
+    const wrap = this.parentElement;
+    wrap.innerHTML = `<span class="team-card__initials" aria-label="${this.alt}">${initials}</span>`;
+  });
+});
