@@ -1,3 +1,17 @@
+# Timeless Café — pass-through (must be before the catch-all below)
+[[redirects]]
+  from = "/timeless-cafe"
+  to = "/timeless-cafe/index.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/timeless-cafe/*"
+  to = "/timeless-cafe/:splat"
+  status = 200
+  force = false
+
+# H5 Hair SPA catch-all
 [[redirects]]
   from = "/*"
   to = "/index.html"
