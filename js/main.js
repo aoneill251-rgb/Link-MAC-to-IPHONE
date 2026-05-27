@@ -23,7 +23,7 @@ navLinks?.querySelectorAll('a').forEach(link => {
 });
 
 // Cookie banner
-const COOKIE_KEY = 'se_cookie_consent';
+const COOKIE_KEY = 'h5hair_cookie_consent';
 const cookieBanner = document.getElementById('cookieBanner');
 if (cookieBanner && !localStorage.getItem(COOKIE_KEY)) {
   cookieBanner.style.display = 'block';
