@@ -3,19 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="H5 Hair By Janet Weldon — premium hair salon. Cuts, colour, treatments and bridal styling. Book your appointment today." />
-  <title>H5 Hair | By Janet Weldon</title>
+  <meta name="description" content="H5 Hair By Janet Weldon — Maynooth's premier hair studio. Specialist cuts, colour, balayage, extensions, 12-week blowdry &amp; bridal styling. Book online instantly." />
+  <title>H5 Hair | By Janet Weldon | Maynooth, Co. Kildare</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
 </head>
 <body>
 
-  <!-- Navigation -->
+  <!-- ===== NAVIGATION ===== -->
   <nav class="nav" id="nav">
     <div class="nav__inner">
-      <a href="index.html" class="nav__logo">
+      <a href="/" class="nav__logo">
         <span class="nav__logo-wordmark">H&#8209;<span class="nav__logo-five">5</span>Hair</span>
         <span class="nav__logo-byline">By Janet Weldon</span>
       </a>
@@ -25,350 +25,495 @@
       <ul class="nav__links" id="navLinks">
         <li><a href="#about">About</a></li>
         <li><a href="#services">Services</a></li>
-        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#reviews">Reviews</a></li>
         <li><a href="#team">Team</a></li>
         <li><a href="#location">Location</a></li>
-        <li><a href="#contact" class="btn btn--nav">Book Now</a></li>
+        <li>
+          <a href="https://booking.barespace.app/h5hair"
+             target="_blank" rel="noopener"
+             class="btn btn--nav">Book Now</a>
+        </li>
       </ul>
     </div>
   </nav>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero__overlay"></div>
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="home">
+    <div class="hero__deco-wrap" aria-hidden="true">
+      <div class="hero__deco hero__deco--1"></div>
+      <div class="hero__deco hero__deco--2"></div>
+      <div class="hero__deco hero__deco--3"></div>
+    </div>
     <div class="hero__content">
-      <p class="hero__tagline">Where beauty meets artistry</p>
+      <p class="hero__tagline">Maynooth's Premier Hair Studio</p>
       <div class="hero__logo-display">
-        <div class="hero__logo-main">
-          H&#8209;<span class="five">5</span>Hair
-        </div>
+        <div class="hero__logo-main">H&#8209;<span class="five">5</span>Hair</div>
         <p class="hero__logo-byline-large">By Janet Weldon</p>
       </div>
-      <p class="hero__sub">Premium hair styling — cuts, colour &amp; occasions</p>
-      <a href="#contact" class="btn btn--primary">Book Your Appointment</a>
+      <div class="hero__stars" aria-label="5-star Google rated">
+        <span class="stars">★★★★★</span>
+        <span class="hero__stars-label">5-Star Google Rated · 60+ Reviews</span>
+      </div>
+      <p class="hero__sub">Cuts · Colour &amp; Balayage · 12-Week Blowdry · Extensions · Bridal</p>
+      <a href="https://booking.barespace.app/h5hair"
+         target="_blank" rel="noopener"
+         class="btn btn--primary btn--hero">
+        Book Your Appointment &rarr;
+      </a>
+    </div>
+    <div class="hero__scroll" aria-hidden="true">
+      <span>Scroll</span>
+      <div class="hero__scroll-line"></div>
     </div>
   </section>
 
-  <!-- About -->
+  <!-- ===== ABOUT ===== -->
   <section class="section" id="about">
     <div class="container two-col">
-      <div class="two-col__text">
-        <span class="label">About Us</span>
-        <h2>Passion for hair, dedication to you</h2>
-        <p>H5 Hair is Janet Weldon's vision of what a hair salon should be — a place where you feel heard, valued, and leave looking truly your best. With years of experience crafting beautiful hair, Janet has built a reputation for exceptional colour, precision cuts and a warmth that keeps clients coming back.</p>
-        <p>Every appointment is tailored to you. Whether you're after a subtle refresh, a bold transformation, or a stunning bridal look, the H5 Hair team brings skill and care to every strand.</p>
-        <a href="#contact" class="btn btn--secondary">Book a Consultation</a>
+      <div class="two-col__text reveal">
+        <span class="label">About H5 Hair</span>
+        <h2>Passion for hair,<br>dedication to you</h2>
+        <p>H5 Hair is Janet Weldon's vision of what a hair salon should be — a place where you feel genuinely heard and leave looking truly your best. Located in the heart of Maynooth with easy, convenient parking, we've built a reputation for exceptional colour, precision cuts, and a warmth that keeps clients coming back year after year.</p>
+        <p>Every appointment is tailored to you. Whether you're after a subtle refresh, a bold transformation, or a breathtaking bridal look, Janet and the team bring skill, care, and artistry to every strand. From nervous first-timers to loyal clients of over a decade — everyone gets the same dedicated attention.</p>
+        <a href="https://booking.barespace.app/h5hair"
+           target="_blank" rel="noopener"
+           class="btn btn--secondary">Book a Consultation</a>
       </div>
-      <div class="two-col__image">
-        <div class="image-placeholder image-placeholder--about">
-          <span>Salon interior photo</span>
+      <div class="two-col__image reveal reveal--delay">
+        <div class="about-visual">
+          <div class="about-visual__main">
+            <span class="about-visual__logo-text">H&#8209;<em>5</em>Hair</span>
+            <span class="about-visual__logo-sub">By Janet Weldon</span>
+            <div class="about-visual__divider"></div>
+            <span class="about-visual__tagline">"Where beauty meets artistry"</span>
+          </div>
+          <div class="about-visual__float about-visual__float--a">
+            <span class="about-visual__float-icon">✂</span>
+            <strong>10+ Years</strong>
+            <span>of expertise</span>
+          </div>
+          <div class="about-visual__float about-visual__float--b">
+            <span class="about-visual__float-icon">★</span>
+            <strong>5-Star</strong>
+            <span>Google rated</span>
+          </div>
+          <div class="about-visual__float about-visual__float--c">
+            <span class="about-visual__float-icon">📍</span>
+            <strong>Maynooth</strong>
+            <span>Co. Kildare</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Services -->
+  <!-- ===== SERVICES ===== -->
   <section class="section section--alt" id="services">
     <div class="container">
-      <div class="section-header">
+      <div class="section-header reveal">
         <span class="label">What We Offer</span>
         <h2>Our Services</h2>
-        <p>From everyday cuts to colour masterpieces — we have every style covered.</p>
+        <p>From everyday cuts to colour masterpieces — we have every look covered.</p>
       </div>
+
       <div class="services-grid">
-        <div class="service-card">
+
+        <!-- Featured -->
+        <div class="service-card service-card--featured reveal">
+          <span class="service-card__badge">⭐ Client Favourite</span>
+          <div class="service-card__icon-lg">💨</div>
+          <h3>12-Week Blowdry</h3>
+          <p>The game-changer our clients can't stop raving about. Smooth, frizz-free hair that stays gorgeous for months. If you have unruly, curly or hard-to-manage hair, this treatment will change your life.</p>
+          <a href="https://booking.barespace.app/h5hair"
+             target="_blank" rel="noopener"
+             class="service-card__cta">Book this treatment &rarr;</a>
+        </div>
+
+        <div class="service-card reveal">
           <div class="service-card__icon">✂️</div>
           <h3>Cut &amp; Style</h3>
-          <p>Precision cuts shaped to your face, personality, and lifestyle — finished with a professional blow-dry.</p>
-          <p class="service-card__price">From €45</p>
+          <p>Precision cuts shaped to your face, personality and lifestyle — finished with a professional blow-dry.</p>
         </div>
-        <div class="service-card">
+
+        <div class="service-card reveal">
           <div class="service-card__icon">🎨</div>
           <h3>Colour &amp; Highlights</h3>
-          <p>Full colour, balayage, ombré and foils using premium, gentle formulas for luminous, lasting results.</p>
-          <p class="service-card__price">From €80</p>
+          <p>Full colour, balayage, ombré and foils. Janet is Maynooth's go-to specialist for beautiful, luminous blonde.</p>
         </div>
-        <div class="service-card">
+
+        <div class="service-card reveal">
+          <div class="service-card__icon">🪢</div>
+          <h3>Hair Extensions</h3>
+          <p>Premium tape extensions applied with expert precision for natural-looking volume and length that lasts.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <div class="service-card__icon">👰</div>
+          <h3>Bridal &amp; Occasion</h3>
+          <p>Bespoke bridal packages with a full trial run included. Look breathtaking on your most special day.</p>
+        </div>
+
+        <div class="service-card reveal">
           <div class="service-card__icon">💆</div>
           <h3>Treatments</h3>
           <p>Deep conditioning, bond-repair, keratin smoothing and scalp treatments for healthy, beautiful hair.</p>
-          <p class="service-card__price">From €40</p>
         </div>
-        <div class="service-card">
-          <div class="service-card__icon">👰</div>
-          <h3>Bridal &amp; Occasion</h3>
-          <p>Look breathtaking on your big day. Bespoke bridal packages including a full trial run available.</p>
-          <p class="service-card__price">From €150</p>
-        </div>
-        <div class="service-card">
-          <div class="service-card__icon">🧒</div>
-          <h3>Children's Cuts</h3>
-          <p>Gentle, fun styling for little ones in a calm, welcoming environment the whole family will love.</p>
-          <p class="service-card__price">From €20</p>
-        </div>
-        <div class="service-card">
+
+        <div class="service-card reveal">
           <div class="service-card__icon">💇</div>
           <h3>Blow-dry &amp; Finish</h3>
-          <p>A luxurious wash, blow-dry and style — the perfect pick-me-up when you want to look your very best.</p>
-          <p class="service-card__price">From €30</p>
+          <p>A luxurious wash, blow-dry and style — the perfect pick-me-up when you want to look and feel your absolute best.</p>
+        </div>
+
+        <div class="service-card reveal">
+          <div class="service-card__icon">🧒</div>
+          <h3>Children's Cuts</h3>
+          <p>Gentle, patient styling for little ones. Janet's kind, warm approach is especially loved by nervous young customers.</p>
+        </div>
+
+      </div>
+
+      <div class="services-footer reveal">
+        <a href="https://booking.barespace.app/h5hair"
+           target="_blank" rel="noopener"
+           class="btn btn--primary btn--lg">
+          See Live Availability &amp; Book Online &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== REVIEWS ===== -->
+  <section class="section" id="reviews">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="label">What Our Clients Say</span>
+        <h2>Loved by Maynooth</h2>
+        <div class="reviews-summary">
+          <span class="stars stars--lg">★★★★★</span>
+          <p>5.0 rating on Google &nbsp;·&nbsp; 60+ five-star reviews</p>
         </div>
       </div>
+
+      <div class="reviews-carousel reveal" id="reviewsCarousel">
+        <div class="reviews-track" id="reviewsTrack">
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"The best in the business!! Have been going to Janet for my cut, colour, extensions and blow-dries for almost 10 years and every time I leave the salon I couldn't be happier. Janet and all the team in H5 consistently go above and beyond and are truly talented at the beautiful work they do."</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">NK</div>
+              <div>
+                <strong>Niamh Kennedy</strong>
+                <span>Client for 10 years</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"Twelve week blow dry has changed my hair, absolutely amazing. Could not recommend it highly enough. I have frizzy hair and the difference it has made is unbelievable — my hair is smooth and silky and frizz-free. Thanks Janet and Blaithnaid for an amazing job!"</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">GF</div>
+              <div>
+                <strong>Gwen F</strong>
+                <span>Verified Google Review</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"Janet is the QUEEN of blonde hair 😍 There hasn't been a day I haven't left this salon feeling amazing. Would highly recommend Janet and her team x"</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">RL</div>
+              <div>
+                <strong>Ria Loughney</strong>
+                <span>Verified Google Review</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"Janet is amazing, she really listens to what you want. I have been highlighting my hair for years and I can honestly say it's taken until now to be fully happy with it — since going to Janet. Such a lovely environment as soon as you walk in."</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">SO</div>
+              <div>
+                <strong>Sarah O'Donoghue</strong>
+                <span>Verified Google Review</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"Megan is incredible — I always look so forward to my appointments and am always delighted with my results. The salon is relaxing, parking and booking is very straightforward and just a lovely vibe. 5 stars 🌟 from me!"</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">SG</div>
+              <div>
+                <strong>Sinead Gormally</strong>
+                <span>Verified Google Review</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"I've been coming to H5 since 2019 and would not go anywhere else now. Janet is warm, friendly and knowledgeable and an absolute pro with blondes."</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">KC</div>
+              <div>
+                <strong>Karen Cullen</strong>
+                <span>Client since 2019</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"Always so happy with service and experience at H5! Janet takes time to greet everyone and is clearly so passionate about hair. All the girls are fantastic — Blathnaid did my hair today, she's brilliant!"</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">AJ</div>
+              <div>
+                <strong>Aisling Joyce</strong>
+                <span>Verified Google Review</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="review-card">
+            <div class="review-card__stars">★★★★★</div>
+            <blockquote>"Gentle approach to a nervous teen customer who had a bad experience at another salon previously. Janet's kind and soft approach helped my daughter feel at ease and she cut her hair exactly the way she wanted it."</blockquote>
+            <div class="review-card__author">
+              <div class="review-card__avatar">A</div>
+              <div>
+                <strong>Alina</strong>
+                <span>Verified Google Review</span>
+              </div>
+            </div>
+          </article>
+
+        </div><!-- /reviews-track -->
+
+        <div class="reviews-nav">
+          <button class="reviews-arrow" id="reviewPrev" aria-label="Previous review">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12 4l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="reviews-dots" id="reviewsDots" role="tablist" aria-label="Review navigation"></div>
+          <button class="reviews-arrow" id="reviewNext" aria-label="Next review">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M8 4l6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div><!-- /reviews-carousel -->
+
+      <div class="reviews-google reveal">
+        <a href="https://www.google.com/maps/search/H5+Hair+Maynooth+Janet+Weldon"
+           target="_blank" rel="noopener"
+           class="reviews-google__link">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Read all our Google reviews
+        </a>
+        <a href="https://www.instagram.com/h5_hair/"
+           target="_blank" rel="noopener"
+           class="reviews-google__link reviews-google__link--instagram">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          Follow us @h5_hair
+        </a>
+      </div>
     </div>
   </section>
 
-  <!-- Gallery -->
-  <section class="section" id="gallery">
-    <div class="container">
-      <div class="section-header">
-        <span class="label">Our Work</span>
-        <h2>Gallery</h2>
-        <p>A selection of recent looks from the H5 Hair team.</p>
-      </div>
-      <div class="gallery-grid">
-        <div class="gallery-item image-placeholder"><span>Style 1</span></div>
-        <div class="gallery-item image-placeholder"><span>Style 2</span></div>
-        <div class="gallery-item image-placeholder"><span>Style 3</span></div>
-        <div class="gallery-item image-placeholder"><span>Style 4</span></div>
-        <div class="gallery-item image-placeholder"><span>Style 5</span></div>
-        <div class="gallery-item image-placeholder"><span>Style 6</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Team -->
+  <!-- ===== TEAM ===== -->
   <section class="section section--alt" id="team">
     <div class="container">
-      <div class="section-header">
+      <div class="section-header reveal">
         <span class="label">Meet the Team</span>
         <h2>The Talent Behind H5 Hair</h2>
-        <p>Our passionate team is here to bring your vision to life.</p>
+        <p>Our passionate team is here to bring your vision to life — with warmth, skill, and a genuine love for hair.</p>
       </div>
       <div class="team-grid">
 
-        <!-- ── TEAM MEMBER: update name, role, bio, and photo src below ── -->
-        <div class="team-card">
+        <div class="team-card reveal">
           <div class="team-card__photo-wrap">
-            <!-- Place photo at images/team/janet.jpg to display it -->
-            <img src="images/team/janet.jpg"
-                 alt="JW"
-                 data-initials="JW"
-                 class="team-card__photo" />
+            <img src="images/team/janet.jpg" alt="Janet Weldon" data-initials="JW" class="team-card__photo" />
           </div>
           <h3>Janet Weldon</h3>
           <p class="team-card__role">Founder &amp; Senior Stylist</p>
-          <p>Janet's passion for hair and eye for colour have made her one of the most sought-after stylists around. Specialist in balayage, creative colour and bridal styling.</p>
+          <p>Janet's passion for hair and eye for colour have made her one of the most sought-after stylists in Kildare. Specialist in balayage, blonde techniques, tape extensions and breathtaking bridal styles. Her clients describe her as patient, warm, and "the queen of blonde hair".</p>
         </div>
 
-        <!-- ── TEAM MEMBER ── -->
-        <div class="team-card">
+        <div class="team-card reveal reveal--delay">
           <div class="team-card__photo-wrap">
-            <!-- Place photo at images/team/stylist2.jpg to display it -->
-            <img src="images/team/stylist2.jpg"
-                 alt=""
-                 data-initials="H5"
-                 class="team-card__photo" />
+            <img src="images/team/megan.jpg" alt="Megan" data-initials="ME" class="team-card__photo" />
           </div>
-          <h3>Team Member</h3>
+          <h3>Megan</h3>
           <p class="team-card__role">Senior Stylist</p>
-          <p>Coming soon — update this card with your team member's name, role and photo.</p>
+          <p>Megan has earned a devoted following at H5 Hair for her exceptional colour work and meticulous attention to detail. Clients love her consultative approach — she always takes the time to understand exactly what you want and talks you through every step.</p>
         </div>
 
-        <!-- ── TEAM MEMBER ── -->
-        <div class="team-card">
+        <div class="team-card reveal reveal--delay-2">
           <div class="team-card__photo-wrap">
-            <!-- Place photo at images/team/stylist3.jpg to display it -->
-            <img src="images/team/stylist3.jpg"
-                 alt=""
-                 data-initials="H5"
-                 class="team-card__photo" />
+            <img src="images/team/blathnaid.jpg" alt="Blathnaid" data-initials="BL" class="team-card__photo" />
           </div>
-          <h3>Team Member</h3>
+          <h3>Blathnaid</h3>
           <p class="team-card__role">Stylist</p>
-          <p>Coming soon — update this card with your team member's name, role and photo.</p>
+          <p>Blathnaid is a brilliant, warm addition to the H5 Hair team — highly skilled across all services including the salon's famous 12-week blowdry treatment. Clients consistently leave singing her praises.</p>
         </div>
-
-        <!-- ── ADD MORE TEAM MEMBERS: copy a block above and update ── -->
 
       </div>
     </div>
   </section>
 
-  <!-- Location -->
+  <!-- ===== LOCATION & HOURS ===== -->
   <section class="section" id="location">
     <div class="container two-col two-col--reverse">
-      <div class="two-col__text">
+      <div class="two-col__text reveal">
         <span class="label">Find Us</span>
-        <h2>Location &amp; Hours</h2>
+        <h2>Location &amp; Opening Hours</h2>
         <div class="location-details">
+
           <div class="location-detail">
-            <strong>Address</strong>
-            <p>Your Salon Address Here</p>
+            <strong>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              Address
+            </strong>
+            <p>Unit H5, Maynooth Business Campus<br>Maynooth, Co. Kildare</p>
+            <a href="https://www.google.com/maps/search/H5+Hair+Unit+H5+Maynooth+Business+Campus"
+               target="_blank" rel="noopener" class="location-link">Get directions &rarr;</a>
           </div>
+
           <div class="location-detail">
-            <strong>Phone</strong>
-            <p><a href="tel:+353000000000">+353 00 000 0000</a></p>
+            <strong>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.82a16 16 0 0 0 6.29 6.29l1.17-.88a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              Phone
+            </strong>
+            <p><a href="tel:+35316106440">(01) 610 6440</a></p>
           </div>
+
           <div class="location-detail">
-            <strong>Email</strong>
-            <p><a href="mailto:hello@h5hair.ie">hello@h5hair.ie</a></p>
+            <strong>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+              Instagram
+            </strong>
+            <p><a href="https://www.instagram.com/h5_hair/" target="_blank" rel="noopener">@h5_hair</a></p>
           </div>
+
           <div class="location-detail">
-            <strong>Opening Hours</strong>
+            <strong>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Opening Hours
+            </strong>
             <table class="hours-table">
-              <tr><td>Monday – Wednesday</td><td>9am – 6pm</td></tr>
-              <tr><td>Thursday – Friday</td><td>9am – 8pm</td></tr>
-              <tr><td>Saturday</td><td>9am – 5pm</td></tr>
-              <tr><td>Sunday</td><td>Closed</td></tr>
+              <tbody>
+                <tr><td>Tuesday</td><td>9:30 am – 5:00 pm</td></tr>
+                <tr><td>Wednesday</td><td>9:30 am – 6:00 pm</td></tr>
+                <tr><td>Thursday</td><td>9:30 am – 8:00 pm</td></tr>
+                <tr><td>Friday</td><td>9:30 am – 6:00 pm</td></tr>
+                <tr><td>Saturday</td><td>9:00 am – 4:00 pm</td></tr>
+                <tr class="hours-closed"><td>Sunday</td><td>Closed</td></tr>
+                <tr class="hours-closed"><td>Monday</td><td>Closed</td></tr>
+              </tbody>
             </table>
           </div>
+
         </div>
       </div>
-      <div class="two-col__image">
-        <div class="map-embed image-placeholder">
-          <span>Google Map Embed</span>
-          <small>Replace with: &lt;iframe src="https://maps.google.com/..."&gt;&lt;/iframe&gt;</small>
+      <div class="two-col__image reveal reveal--delay">
+        <div class="map-embed">
+          <iframe
+            src="https://maps.google.com/maps?q=H5+Hair+Maynooth+Business+Campus+Maynooth+Co+Kildare+Ireland&output=embed&z=16"
+            width="100%" height="440"
+            style="border:0; border-radius:12px; display:block;"
+            allowfullscreen="" loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="H5 Hair location on Google Maps">
+          </iframe>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Contact / Booking -->
-  <section class="section section--alt" id="contact">
+  <!-- ===== BOOK CTA ===== -->
+  <section class="section section--book" id="contact">
     <div class="container">
-      <div class="section-header">
-        <span class="label">Get in Touch</span>
-        <h2>Book an Appointment</h2>
-        <p>Pick a time directly in our calendar, or fill in the form and we'll confirm within 24 hours.</p>
-      </div>
-
-      <!-- "Book Direct" button — replace # with your Calendly / Google Calendar / Outlook booking link -->
-      <div class="book-direct">
-        <div class="book-direct__text">
-          <strong>Book straight into our calendar</strong>
-          <p>See live availability and confirm your slot instantly.</p>
-        </div>
-        <a href="#" class="btn btn--primary book-direct__btn" target="_blank" rel="noopener">
-          Choose a Time Slot &rarr;
+      <div class="book-cta reveal">
+        <span class="label label--light">Ready to Book?</span>
+        <h2>Book Your Appointment Online</h2>
+        <p>See live availability and secure your slot instantly via our easy online booking system — no phone tag, no waiting. Just beautiful hair.</p>
+        <a href="https://booking.barespace.app/h5hair"
+           target="_blank" rel="noopener"
+           class="btn btn--white btn--lg btn--book">
+          Book My Appointment &rarr;
         </a>
+        <p class="book-cta__divider">or call us directly</p>
+        <a href="tel:+35316106440" class="btn btn--outline-white">(01) 610 6440</a>
       </div>
-      <div class="book-direct__divider"><span>or request via the form below</span></div>
-
-      <!-- Netlify Forms: submissions are emailed to you via your Netlify dashboard -->
-      <form class="booking-form" id="bookingForm" novalidate
-            name="booking" method="POST" data-netlify="true">
-        <input type="hidden" name="form-name" value="booking" />
-        <div class="form-row">
-          <div class="form-group">
-            <label for="firstName">First Name *</label>
-            <input type="text" id="firstName" name="firstName" required autocomplete="given-name" />
-            <span class="form-error" id="firstNameError"></span>
-          </div>
-          <div class="form-group">
-            <label for="lastName">Last Name *</label>
-            <input type="text" id="lastName" name="lastName" required autocomplete="family-name" />
-            <span class="form-error" id="lastNameError"></span>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="email">Email Address *</label>
-            <input type="email" id="email" name="email" required autocomplete="email" />
-            <span class="form-error" id="emailError"></span>
-          </div>
-          <div class="form-group">
-            <label for="phone">Phone Number</label>
-            <input type="tel" id="phone" name="phone" autocomplete="tel" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="service">Service *</label>
-            <select id="service" name="service" required>
-              <option value="">Select a service…</option>
-              <option value="cut-style">Cut &amp; Style</option>
-              <option value="colour">Colour &amp; Highlights</option>
-              <option value="treatment">Treatment</option>
-              <option value="bridal">Bridal &amp; Occasion</option>
-              <option value="children">Children's Cut</option>
-              <option value="blowdry">Blow-dry &amp; Finish</option>
-            </select>
-            <span class="form-error" id="serviceError"></span>
-          </div>
-          <div class="form-group">
-            <label for="preferredDate">Preferred Date *</label>
-            <input type="date" id="preferredDate" name="preferredDate" required />
-            <span class="form-error" id="preferredDateError"></span>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="stylist">Preferred Stylist</label>
-            <!-- Keep this list in sync with the Team section above -->
-            <select id="stylist" name="stylist">
-              <option value="">No preference</option>
-              <option value="janet-weldon">Janet Weldon</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="preferredTime">Preferred Time</label>
-            <select id="preferredTime" name="preferredTime">
-              <option value="">Any time</option>
-              <option value="morning">Morning (9am – 12pm)</option>
-              <option value="afternoon">Afternoon (12pm – 4pm)</option>
-              <option value="evening">Evening (4pm – 8pm)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="message">Additional Notes</label>
-          <textarea id="message" name="message" rows="4" placeholder="Let us know anything that would help us prepare for your visit…"></textarea>
-        </div>
-        <div class="form-group form-group--checkbox">
-          <label class="checkbox-label">
-            <input type="checkbox" id="gdprConsent" name="gdprConsent" required />
-            <span>I agree to my data being stored and used to process this booking request, in accordance with the <a href="privacy.html" target="_blank">Privacy Policy</a>. *</span>
-          </label>
-          <span class="form-error" id="gdprError"></span>
-        </div>
-        <button type="submit" class="btn btn--primary btn--full" id="submitBtn">Send Booking Request</button>
-        <div class="form-success" id="formSuccess" style="display:none;">
-          <strong>Thank you!</strong> We've received your booking request and will be in touch within 24 hours to confirm your appointment.
-        </div>
-      </form>
     </div>
   </section>
 
-  <!-- Footer -->
+  <!-- ===== FOOTER ===== -->
   <footer class="footer">
     <div class="container footer__inner">
+
       <div class="footer__brand">
         <p class="footer__logo">H&#8209;<span class="five">5</span>Hair</p>
         <p class="footer__byline">By Janet Weldon</p>
-        <p>hello@h5hair.ie</p>
+        <p>Unit H5, Maynooth Business Campus<br>Maynooth, Co. Kildare</p>
+        <p><a href="tel:+35316106440">(01) 610 6440</a></p>
+        <a href="https://www.instagram.com/h5_hair/"
+           target="_blank" rel="noopener"
+           class="footer__instagram">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+          @h5_hair on Instagram
+        </a>
       </div>
+
       <div class="footer__links">
         <h4>Quick Links</h4>
         <ul>
           <li><a href="#about">About</a></li>
           <li><a href="#services">Services</a></li>
-          <li><a href="#gallery">Gallery</a></li>
-          <li><a href="#contact">Book Now</a></li>
+          <li><a href="#reviews">Reviews</a></li>
+          <li><a href="#team">Team</a></li>
+          <li><a href="#location">Location &amp; Hours</a></li>
+          <li><a href="https://booking.barespace.app/h5hair" target="_blank" rel="noopener">Book Online</a></li>
         </ul>
       </div>
+
       <div class="footer__links">
-        <h4>Legal</h4>
-        <ul>
-          <li><a href="privacy.html">Privacy Policy</a></li>
-          <li><a href="terms.html">Terms of Service</a></li>
+        <h4>Opening Hours</h4>
+        <ul class="footer__hours">
+          <li><span>Tuesday</span><span>9:30am – 5pm</span></li>
+          <li><span>Wednesday</span><span>9:30am – 6pm</span></li>
+          <li><span>Thursday</span><span>9:30am – 8pm</span></li>
+          <li><span>Friday</span><span>9:30am – 6pm</span></li>
+          <li><span>Saturday</span><span>9am – 4pm</span></li>
+          <li class="footer__hours-closed"><span>Sunday</span><span>Closed</span></li>
+          <li class="footer__hours-closed"><span>Monday</span><span>Closed</span></li>
         </ul>
+        <div class="footer__legal">
+          <a href="privacy.html">Privacy Policy</a>
+          <a href="terms.html">Terms</a>
+        </div>
       </div>
+
     </div>
     <div class="footer__bottom">
-      <p>&copy; 2026 H5 Hair By Janet Weldon. All rights reserved.</p>
+      <p>&copy; 2026 H5 Hair By Janet Weldon · Unit H5, Maynooth Business Campus, Co. Kildare</p>
     </div>
   </footer>
 
-  <!-- Cookie Consent Banner -->
+  <!-- ===== FLOATING BOOK BUTTON ===== -->
+  <a href="https://booking.barespace.app/h5hair"
+     target="_blank" rel="noopener"
+     class="float-book" id="floatBook"
+     aria-label="Book an appointment at H5 Hair">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Book Now
+  </a>
+
+  <!-- ===== COOKIE BANNER ===== -->
   <div class="cookie-banner" id="cookieBanner" style="display:none;">
     <div class="cookie-banner__inner">
       <p>We use cookies to improve your experience on our site. By continuing to browse, you agree to our <a href="privacy.html">Privacy Policy</a>.</p>
