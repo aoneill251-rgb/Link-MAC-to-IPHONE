@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Timeless Café — Kilcock's favourite brunch &amp; lunch café on Church St. Signature hash dishes, Cajun chicken, artisan coffee. Rated 4.7★ on Google. Order for collection." />
+  <title>Timeless Café | Church St, Kilcock, Co. Kildare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ============================
+       NAV
+       ============================ -->
+  <nav class="nav" id="nav">
+    <div class="container nav__inner">
+      <a href="#home" class="nav__logo">
+        <span class="nav__logo-name">Timeless</span>
+        <span class="nav__logo-sub">— Café —</span>
+      </a>
+      <button class="nav__toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="#about">About</a></li>
+        <li><a href="#menu">Menu</a></li>
+        <li><a href="#reviews">Reviews</a></li>
+        <li><a href="#hours">Hours</a></li>
+        <li><a href="#location">Location</a></li>
+        <li><a href="#" class="btn btn--primary" id="orderBtnNav">🛍 Order for Collection</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ============================
+       HERO
+       ============================ -->
+  <section class="hero" id="home">
+    <div class="hero__bg"></div>
+    <div class="container hero__content">
+
+      <div class="hero__logo">
+        <div class="hero__clock" aria-hidden="true"></div>
+        <div class="hero__wordmark">Timeless</div>
+        <div class="hero__cafe">Café</div>
+      </div>
+
+      <div class="hero__text">
+        <div class="hero__rating">
+          <span class="hero__stars">★★★★★</span>
+          <span class="hero__rating-num">4.7</span>
+          <span class="hero__rating-count">· 721 Google reviews</span>
+        </div>
+        <h1 class="hero__headline">Kilcock's best-loved<br>brunch &amp; lunch café</h1>
+        <p class="hero__sub">
+          Signature hash dishes, Cajun chicken, artisan coffee and
+          a menu that keeps surprising — all in the heart of Kilcock's Church Street.
+        </p>
+        <div class="hero__actions">
+          <button class="btn btn--primary" id="orderBtnHero">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            Order for Collection
+          </button>
+          <a href="#menu" class="btn btn--white">View Menu</a>
+        </div>
+      </div>
+
+    </div>
+    <div class="hero__scroll" id="heroScroll">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      Scroll
+    </div>
+  </section>
+
+  <!-- ============================
+       ABOUT
+       ============================ -->
+  <section class="about" id="about">
+    <div class="container about__inner">
+
+      <div class="about__visual fade-up">
+        <div class="about__img-wrap">
+          <div class="about__img-placeholder">
+            <span class="big-icon">☕</span>
+            <span>Timeless Café<br>Church St, Kilcock</span>
+          </div>
+        </div>
+        <div class="about__badge">
+          <span class="big">4.7</span>
+          <span class="small">Google<br>Rating</span>
+        </div>
+      </div>
+
+      <div class="about__text fade-up">
+        <span class="section-label">About Us</span>
+        <h2 class="section-title">A little café with<br>a big reputation</h2>
+        <p class="section-sub">
+          Tucked away on Church Street in Kilcock, Timeless Café has been winning hearts
+          with its inventive menu, generous portions and genuinely warm welcome. From our
+          legendary bacon hash to knockout Cajun chicken, every dish is crafted with care.
+        </p>
+        <div class="about__features">
+          <div class="about__feature">
+            <div class="about__feature-icon">🥔</div>
+            <div class="about__feature-text">
+              <strong>Signature Hash</strong>
+              <span>Voted #1 by regulars</span>
+            </div>
+          </div>
+          <div class="about__feature">
+            <div class="about__feature-icon">☕</div>
+            <div class="about__feature-text">
+              <strong>Artisan Coffee</strong>
+              <span>Freshly ground daily</span>
+            </div>
+          </div>
+          <div class="about__feature">
+            <div class="about__feature-icon">🌱</div>
+            <div class="about__feature-text">
+              <strong>Veg &amp; Vegan</strong>
+              <span>Always on the menu</span>
+            </div>
+          </div>
+          <div class="about__feature">
+            <div class="about__feature-icon">🥡</div>
+            <div class="about__feature-text">
+              <strong>Takeaway</strong>
+              <span>Ready to collect</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================
+       MENU HIGHLIGHTS
+       ============================ -->
+  <section class="menu" id="menu">
+    <div class="container">
+      <div class="menu__header fade-up">
+        <span class="section-label">Our Menu</span>
+        <h2 class="section-title">Customer favourites</h2>
+        <p class="section-sub">
+          From brunch classics to something completely different — our menu changes with
+          the seasons and always has something to discover.
+        </p>
+      </div>
+      <div class="menu__grid">
+
+        <div class="menu__card fade-up">
+          <div class="menu__card-img" style="--c1:#5C3D2E;--c2:#C0312B;">🥔</div>
+          <div class="menu__card-body">
+            <div class="menu__card-tag">Signature</div>
+            <div class="menu__card-name">Bacon Hash</div>
+            <div class="menu__card-desc">Our most-loved dish — crispy potato hash topped with bacon, poached eggs and a house sauce. People drive from Dublin just for this.</div>
+          </div>
+        </div>
+
+        <div class="menu__card fade-up">
+          <div class="menu__card-img" style="--c1:#8B1A17;--c2:#D4632E;">🌶</div>
+          <div class="menu__card-body">
+            <div class="menu__card-tag">Lunch</div>
+            <div class="menu__card-name">Cajun Chicken Ciabatta</div>
+            <div class="menu__card-desc">Juicy spiced chicken on freshly baked ciabatta with chips and coffee — a full lunch under €15. A repeat offender for our regulars.</div>
+          </div>
+        </div>
+
+        <div class="menu__card fade-up">
+          <div class="menu__card-img" style="--c1:#2C5C2E;--c2:#5C8C30;">🍳</div>
+          <div class="menu__card-body">
+            <div class="menu__card-tag">Brunch</div>
+            <div class="menu__card-name">Mozzarella Hash</div>
+            <div class="menu__card-desc">Golden potato hash loaded with melted mozzarella, caramelised onions and a perfectly poached egg. Vegetarian and utterly indulgent.</div>
+          </div>
+        </div>
+
+        <div class="menu__card fade-up">
+          <div class="menu__card-img" style="--c1:#2C4A5C;--c2:#2C8C8C;">🐟</div>
+          <div class="menu__card-body">
+            <div class="menu__card-tag">Brunch</div>
+            <div class="menu__card-name">Salmon Hash</div>
+            <div class="menu__card-desc">Silky Atlantic salmon on crispy hash with hollandaise and fresh herbs. Elegant enough for a special occasion, priced for every day.</div>
+          </div>
+        </div>
+
+        <div class="menu__card fade-up">
+          <div class="menu__card-img" style="--c1:#6B4C2E;--c2:#C09060;">🍞</div>
+          <div class="menu__card-body">
+            <div class="menu__card-tag">Brunch</div>
+            <div class="menu__card-name">Sourdough Breakfast</div>
+            <div class="menu__card-desc">Thick-cut sourdough with cumin hummus, poached eggs and seasonal toppings. Inspired, light and full of flavour.</div>
+          </div>
+        </div>
+
+        <div class="menu__card fade-up">
+          <div class="menu__card-img" style="--c1:#8B4C8B;--c2:#C06B5C;">🥘</div>
+          <div class="menu__card-body">
+            <div class="menu__card-tag">Special</div>
+            <div class="menu__card-name">Korean Coriander Soup</div>
+            <div class="menu__card-desc">A bold, warming soup with Korean-inspired spicing that has earned its own cult following. The kind of thing that turns a visit into a regular habit.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       REVIEWS
+       ============================ -->
+  <section class="reviews" id="reviews">
+    <div class="container">
+      <div class="reviews__header fade-up">
+        <span class="section-label">What People Say</span>
+        <h2 class="section-title">Loved by locals<br>&amp; travellers alike</h2>
+      </div>
+
+      <div class="reviews__summary fade-up">
+        <div class="reviews__score-big">4.7</div>
+        <div class="reviews__score-detail">
+          <div class="reviews__score-stars">★★★★★</div>
+          <div class="reviews__score-count">Based on 721 Google reviews</div>
+        </div>
+        <div class="reviews__bars">
+          <div class="reviews__bar-row">
+            <span class="reviews__bar-label">5</span>
+            <div class="reviews__bar-track"><div class="reviews__bar-fill" data-width="82%"></div></div>
+          </div>
+          <div class="reviews__bar-row">
+            <span class="reviews__bar-label">4</span>
+            <div class="reviews__bar-track"><div class="reviews__bar-fill" data-width="12%"></div></div>
+          </div>
+          <div class="reviews__bar-row">
+            <span class="reviews__bar-label">3</span>
+            <div class="reviews__bar-track"><div class="reviews__bar-fill" data-width="3%"></div></div>
+          </div>
+          <div class="reviews__bar-row">
+            <span class="reviews__bar-label">2</span>
+            <div class="reviews__bar-track"><div class="reviews__bar-fill" data-width="2%"></div></div>
+          </div>
+          <div class="reviews__bar-row">
+            <span class="reviews__bar-label">1</span>
+            <div class="reviews__bar-track"><div class="reviews__bar-fill" data-width="1%"></div></div>
+          </div>
+        </div>
+        <div class="reviews__google">
+          <span class="reviews__google-logo">G</span>
+          <span>Google<br>Reviews</span>
+        </div>
+      </div>
+
+      <div class="reviews__grid">
+
+        <div class="review-card fade-up">
+          <div class="review-card__header">
+            <div class="review-card__avatar">A</div>
+            <div>
+              <div class="review-card__name">Anusha J</div>
+              <div class="review-card__date">5 months ago</div>
+            </div>
+          </div>
+          <div class="review-card__stars">★★★★★</div>
+          <p class="review-card__text">"Good food at decent price — the Korean coriander soup is amazing. Nice place to have brunch with family."</p>
+        </div>
+
+        <div class="review-card fade-up">
+          <div class="review-card__header">
+            <div class="review-card__avatar" style="background:#2C5C8B;">R</div>
+            <div>
+              <div class="review-card__name">robyn trout</div>
+              <div class="review-card__date">3 years ago</div>
+            </div>
+          </div>
+          <div class="review-card__stars">★★★★★</div>
+          <p class="review-card__text">"Convinced this is the best café in Ireland! I make the 35-minute journey to this café at least once a week and I'm never disappointed. Great food for great prices."</p>
+        </div>
+
+        <div class="review-card fade-up">
+          <div class="review-card__header">
+            <div class="review-card__avatar" style="background:#2C7C2E;">J</div>
+            <div>
+              <div class="review-card__name">Julia Nolla</div>
+              <div class="review-card__date">a year ago</div>
+            </div>
+          </div>
+          <div class="review-card__stars">★★★★★</div>
+          <p class="review-card__text">"Incredible food and amazing prices. Best food I've had in Europe. Please try the Cajun Chicken, Mushroom Hash and Squash sandwich!"</p>
+        </div>
+
+        <div class="review-card fade-up">
+          <div class="review-card__header">
+            <div class="review-card__avatar" style="background:#7C2C8B;">C</div>
+            <div>
+              <div class="review-card__name">Conor O'Brien</div>
+              <div class="review-card__date">7 years ago</div>
+            </div>
+          </div>
+          <div class="review-card__stars">★★★★★</div>
+          <p class="review-card__text">"The Bacon Hash might be one of the tastiest meals I've ever eaten, and I order it regularly. Worth the drive just for it. Staff are super friendly. Highly recommend."</p>
+        </div>
+
+        <div class="review-card fade-up">
+          <div class="review-card__header">
+            <div class="review-card__avatar" style="background:#8B5C2C;">D</div>
+            <div>
+              <div class="review-card__name">Daniel Holton</div>
+              <div class="review-card__date">a year ago</div>
+            </div>
+          </div>
+          <div class="review-card__stars">★★★★★</div>
+          <p class="review-card__text">"I travel quite a bit for work and make a point of visiting local cafés for lunch — there's simply nowhere that compares to Timeless."</p>
+        </div>
+
+        <div class="review-card fade-up">
+          <div class="review-card__header">
+            <div class="review-card__avatar" style="background:#2C6B5C;">A</div>
+            <div>
+              <div class="review-card__name">audree lafreniere</div>
+              <div class="review-card__date">a year ago</div>
+            </div>
+          </div>
+          <div class="review-card__stars">★★★★★</div>
+          <p class="review-card__text">"Stopped here by chance and had an amazing lunch. Would have liked to try everything on the menu! The Cajun chicken sandwich and the salmon hash were excellent. Super fresh bread. Excellent coffee."</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       HOURS
+       ============================ -->
+  <section class="hours" id="hours">
+    <div class="container hours__inner">
+
+      <div class="fade-up">
+        <span class="section-label">Opening Hours</span>
+        <h2 class="section-title">We're open<br>all week</h2>
+        <table class="hours__table">
+          <tbody>
+            <tr>
+              <td>Monday</td>
+              <td>8:30 am – 4:00 pm</td>
+            </tr>
+            <tr>
+              <td>Tuesday</td>
+              <td>8:30 am – 4:00 pm</td>
+            </tr>
+            <tr>
+              <td>Wednesday</td>
+              <td>8:30 am – 4:00 pm</td>
+            </tr>
+            <tr>
+              <td>Thursday</td>
+              <td>8:30 am – 4:00 pm</td>
+            </tr>
+            <tr>
+              <td>Friday</td>
+              <td>8:30 am – 4:00 pm</td>
+            </tr>
+            <tr>
+              <td>Saturday</td>
+              <td>9:00 am – 4:00 pm</td>
+            </tr>
+            <tr>
+              <td>Sunday</td>
+              <td>9:00 am – 4:00 pm</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="hours__note">
+          Hours may differ on Bank Holidays. Please call us at <strong>(01) 628 4392</strong> or check our Google listing to confirm.
+        </div>
+      </div>
+
+      <div class="fade-up">
+        <span class="section-label">Can't Make It In?</span>
+        <h2 class="section-title">Order for<br>collection</h2>
+        <p class="section-sub">
+          Fancy a Timeless meal at home? Give us a call or pop in to place a collection order.
+          We'll have it freshly prepared and ready for you.
+        </p>
+        <div class="hours__cta">
+          <h3>Ready when you are</h3>
+          <p>Call ahead to order — we'll have everything freshly prepared and waiting for you to collect.</p>
+          <a href="tel:016284392" class="btn btn--primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 10.6 19.79 19.79 0 01.07 2 2 2 0 012.06 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Call (01) 628 4392
+          </a>
+          &nbsp;
+          <button class="btn btn--outline" id="orderBtnHours" style="color:#fff;border-color:rgba(255,255,255,.4)">
+            Collection Info
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================
+       LOCATION
+       ============================ -->
+  <section class="location" id="location">
+    <div class="container">
+      <div class="location__header fade-up">
+        <span class="section-label">Find Us</span>
+        <h2 class="section-title">Come visit us in Kilcock</h2>
+        <p class="section-sub">
+          We're right in the heart of Kilcock on Church Street — just off the main street with parking nearby.
+        </p>
+      </div>
+      <div class="location__inner">
+
+        <div class="location__info fade-up">
+          <div class="location__info-card">
+            <h3><span>📍</span> Address</h3>
+            <p>Church Street<br>Kilcock<br>Co. Kildare<br>Ireland</p>
+          </div>
+          <div class="location__info-card">
+            <h3><span>📞</span> Phone</h3>
+            <a href="tel:016284392">(01) 628 4392</a>
+          </div>
+          <div class="location__info-card">
+            <h3><span>⏰</span> Hours Today</h3>
+            <p id="todayHours">Mon – Fri: 8:30 am – 4:00 pm<br>Sat – Sun: 9:00 am – 4:00 pm</p>
+          </div>
+          <div class="location__info-card">
+            <h3><span>🚗</span> Getting Here</h3>
+            <p>Located on Church St in the centre of Kilcock. Convenient parking available on and around the main street.</p>
+          </div>
+        </div>
+
+        <div class="location__map-wrap fade-up">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2381.4!2d-6.785!3d53.398!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x485d25a3bb5c5555%3A0xd3cbfcc7d3bdc68f!2sTimeless%20Cafe!5e0!3m2!1sen!2sie!4v1716000000000!5m2!1sen!2sie"
+            allowfullscreen
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            title="Timeless Café on Google Maps">
+          </iframe>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================
+       FOOTER
+       ============================ -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <div class="footer__brand">
+          <div class="footer__brand-sub">— Est. Kilcock —</div>
+          <div class="footer__brand-name">Timeless</div>
+          <p>Kilcock's favourite brunch and lunch destination. Signature hash dishes, artisan coffee, friendly faces — every day of the week.</p>
+        </div>
+        <div class="footer__col">
+          <h4>Visit</h4>
+          <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#menu">Menu Highlights</a></li>
+            <li><a href="#reviews">Reviews</a></li>
+            <li><a href="#hours">Opening Hours</a></li>
+            <li><a href="#location">Location</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="tel:016284392">(01) 628 4392</a></li>
+            <li><a href="#location">Church St, Kilcock</a></li>
+            <li><a href="#location">Co. Kildare, Ireland</a></li>
+          </ul>
+          <br>
+          <button class="btn btn--primary" id="orderBtnFooter" style="font-size:.82rem;padding:.6rem 1.2rem;">
+            Order for Collection
+          </button>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; <span id="year"></span> Timeless Café, Kilcock. All rights reserved.</span>
+        <span>Church St, Kilcock, Co. Kildare &nbsp;|&nbsp; <a href="tel:016284392">(01) 628 4392</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ============================
+       FLOATING ORDER BUTTON
+       ============================ -->
+  <button class="fab" id="fabBtn" aria-label="Order for Collection">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+    <span class="fab-label">Order for Collection</span>
+  </button>
+
+  <!-- ============================
+       ORDER MODAL
+       ============================ -->
+  <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 id="modalTitle">Order for Collection</h2>
+        <button class="modal__close" id="modalClose" aria-label="Close">✕</button>
+      </div>
+      <div class="modal__body">
+        <p>
+          Give us a call to place your collection order — we'll have your food freshly prepared
+          and ready for you to collect at your chosen time.
+        </p>
+        <div class="modal__contact">
+          <a href="tel:016284392">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 10.6 19.79 19.79 0 01.07 2 2 2 0 012.06 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            Call us: (01) 628 4392
+          </a>
+          <a href="#location" id="modalDirections">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Get Directions
+          </a>
+        </div>
+        <div class="hours__note" style="background:rgba(192,49,43,.06);border-color:rgba(192,49,43,.3);border-radius:8px;padding:.85rem 1rem;font-size:.82rem;color:#5C3D2E;margin-top:.5rem;">
+          <strong>Opening hours:</strong> Mon–Fri 8:30am–4pm &nbsp;|&nbsp; Sat–Sun 9am–4pm
+        </div>
+        <p class="modal__note">Timeless Café · Church St, Kilcock, Co. Kildare</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================
+       SCRIPTS
+       ============================ -->
+  <script>
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Nav scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    }, { passive: true });
+
+    // Mobile nav toggle
+    const navToggle = document.getElementById('navToggle');
+    const navLinks  = document.getElementById('navLinks');
+    navToggle.addEventListener('click', () => {
+      navToggle.classList.toggle('open');
+      navLinks.classList.toggle('open');
+    });
+    navLinks.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        navToggle.classList.remove('open');
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // Modal
+    const overlay   = document.getElementById('modalOverlay');
+    const modalClose = document.getElementById('modalClose');
+    const openModal  = () => overlay.classList.add('open');
+    const closeModal = () => overlay.classList.remove('open');
+
+    ['orderBtnNav','orderBtnHero','orderBtnHours','orderBtnFooter','fabBtn']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', e => { e.preventDefault(); openModal(); });
+      });
+
+    modalClose.addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    document.getElementById('modalDirections').addEventListener('click', () => closeModal());
+
+    // Scroll to next section
+    document.getElementById('heroScroll')?.addEventListener('click', () => {
+      document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // Animate rating bars on scroll
+    const bars = document.querySelectorAll('.reviews__bar-fill');
+    const animateBars = () => {
+      bars.forEach(bar => {
+        const rect = bar.closest('.reviews__summary').getBoundingClientRect();
+        if (rect.top < window.innerHeight - 100) {
+          bar.style.width = bar.dataset.width;
+        }
+      });
+    };
+    window.addEventListener('scroll', animateBars, { passive: true });
+
+    // Fade-up on scroll
+    const fadeEls = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    fadeEls.forEach(el => observer.observe(el));
+
+    // Highlight today's hours row
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const today = days[new Date().getDay()];
+    document.querySelectorAll('.hours__table td:first-child').forEach(td => {
+      if (td.textContent.trim().startsWith(today)) td.closest('tr').classList.add('today');
+    });
+
+    // Today's hours in location card
+    const todayEl = document.getElementById('todayHours');
+    if (todayEl) {
+      const h = new Date().getHours();
+      const day = new Date().getDay();
+      const isSatSun = day === 0 || day === 6;
+      const open = isSatSun ? 9 : 8.5;
+      const close = 16;
+      const isOpen = h >= open && h < close;
+      const timeStr = isSatSun ? '9:00 am – 4:00 pm' : '8:30 am – 4:00 pm';
+      todayEl.innerHTML = `<strong>${today}</strong>: ${timeStr}<br><span style="color:${isOpen ? '#2C7C2E' : '#C0312B'};font-weight:600;">${isOpen ? '🟢 Open now' : '🔴 Closed now'}</span>`;
+    }
+  </script>
+
+</body>
+</html>
