@@ -230,58 +230,64 @@ a { color: inherit; text-decoration: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: .6rem;
 }
 
-.hero__clock {
-  width: 56px; height: 56px;
-  border: 3px solid rgba(192,49,43,.7);
-  border-radius: 50%;
+/* ── [clock] ── topper row */
+.hero__logo-topper {
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  gap: .8rem;
+  width: 100%;
 }
-.hero__clock::before {
-  content: '';
-  position: absolute;
-  width: 2px; height: 18px;
-  background: #fff;
-  border-radius: 2px;
-  transform-origin: bottom center;
-  transform: rotate(-40deg) translateY(-4px);
+.hero__logo-rule {
+  flex: 1;
+  height: 1px;
+  background: rgba(192,49,43,.55);
 }
-.hero__clock::after {
-  content: '';
-  position: absolute;
-  width: 2px; height: 14px;
-  background: rgba(255,255,255,.7);
-  border-radius: 2px;
-  transform-origin: bottom center;
-  transform: rotate(60deg) translateY(-3px);
+.hero__clock-icon {
+  width: 42px; height: 42px;
+  flex-shrink: 0;
+  color: rgba(192,49,43,.85);
+}
+.hero__clock-icon svg {
+  width: 100%; height: 100%;
 }
 
+/* TIMELESS wordmark */
 .hero__wordmark {
-  font-family: var(--font-serif);
-  font-size: clamp(3.5rem, 7vw, 6rem);
-  font-weight: 900;
+  font-family: 'Alfa Slab One', serif;
+  font-size: clamp(3.8rem, 8.5vw, 7rem);
+  font-weight: 400;
+  text-transform: uppercase;
   color: var(--red-light);
-  letter-spacing: .04em;
+  letter-spacing: .06em;
   line-height: 1;
   text-align: center;
-  text-shadow: 3px 3px 0 rgba(0,0,0,.3);
+  text-shadow:
+    2px 3px 0 rgba(0,0,0,.35),
+    -1px -1px 2px rgba(0,0,0,.15);
 }
 
-.hero__cafe {
-  font-size: clamp(.9rem, 1.5vw, 1.1rem);
+/* ── CAFÉ ── row */
+.hero__cafe-row {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+}
+.hero__cafe-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255,255,255,.35);
+}
+.hero__cafe-text {
+  font-size: clamp(.75rem, 1.4vw, .95rem);
   font-weight: 700;
-  letter-spacing: .35em;
+  letter-spacing: .4em;
   text-transform: uppercase;
-  color: rgba(255,255,255,.85);
-  text-align: center;
-  border-top: 1px solid rgba(255,255,255,.3);
-  border-bottom: 1px solid rgba(255,255,255,.3);
-  padding: .4rem 1.5rem;
+  color: rgba(255,255,255,.8);
+  padding-right: .4em;
 }
 
 .hero__text { color: #fff; }
@@ -524,7 +530,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 1rem;
+}
+.about__feature-icon svg {
+  width: 18px; height: 18px;
 }
 .about__feature-text strong {
   display: block;
@@ -567,11 +575,21 @@ a { color: inherit; text-decoration: none; }
 
 .menu__card-img {
   aspect-ratio: 3/2;
-  background: linear-gradient(135deg, var(--c1, #5C3D2E), var(--c2, #C0312B));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
+  background: linear-gradient(135deg, var(--c1, #5C3D2E) 0%, var(--c2, #C0312B) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.menu__card-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255,255,255,.03) 0px,
+    rgba(255,255,255,.03) 1px,
+    transparent 1px,
+    transparent 8px
+  );
 }
 
 .menu__card-body { padding: 1.25rem; }
@@ -798,7 +816,7 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: .5rem;
 }
-.location__info-card h3 span {
+.location__info-card h3 .loc-icon {
   width: 28px; height: 28px;
   background: var(--red);
   color: #fff;
@@ -806,7 +824,10 @@ a { color: inherit; text-decoration: none; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: .85rem;
+  flex-shrink: 0;
+}
+.location__info-card h3 .loc-icon svg {
+  width: 14px; height: 14px;
 }
 .location__info-card p, .location__info-card a {
   font-size: .88rem;

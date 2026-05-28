@@ -7,7 +7,7 @@
   <title>Timeless Café | Church St, Kilcock, Co. Kildare</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -30,7 +30,7 @@
         <li><a href="#reviews">Reviews</a></li>
         <li><a href="#hours">Hours</a></li>
         <li><a href="#location">Location</a></li>
-        <li><a href="#" class="btn btn--primary" id="orderBtnNav">🛍 Order for Collection</a></li>
+        <li><a href="#" class="btn btn--primary" id="orderBtnNav">Order for Collection</a></li>
       </ul>
     </div>
   </nav>
@@ -43,9 +43,28 @@
     <div class="container hero__content">
 
       <div class="hero__logo">
-        <div class="hero__clock" aria-hidden="true"></div>
+        <div class="hero__logo-topper" aria-hidden="true">
+          <span class="hero__logo-rule"></span>
+          <div class="hero__clock-icon">
+            <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="24" cy="24" r="20"/>
+              <line x1="24" y1="10" x2="24" y2="24"/>
+              <line x1="24" y1="24" x2="34" y2="30"/>
+              <circle cx="24" cy="24" r="2" fill="currentColor"/>
+              <line x1="24" y1="6" x2="24" y2="4"/>
+              <line x1="24" y1="44" x2="24" y2="42"/>
+              <line x1="6" y1="24" x2="4" y2="24"/>
+              <line x1="44" y1="24" x2="42" y2="24"/>
+            </svg>
+          </div>
+          <span class="hero__logo-rule"></span>
+        </div>
         <div class="hero__wordmark">Timeless</div>
-        <div class="hero__cafe">Café</div>
+        <div class="hero__cafe-row">
+          <span class="hero__cafe-line"></span>
+          <span class="hero__cafe-text">Café</span>
+          <span class="hero__cafe-line"></span>
+        </div>
       </div>
 
       <div class="hero__text">
@@ -84,7 +103,7 @@
       <div class="about__visual fade-up">
         <div class="about__img-wrap">
           <div class="about__img-placeholder">
-            <span class="big-icon">☕</span>
+            <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg>
             <span>Timeless Café<br>Church St, Kilcock</span>
           </div>
         </div>
@@ -104,28 +123,36 @@
         </p>
         <div class="about__features">
           <div class="about__feature">
-            <div class="about__feature-icon">🥔</div>
+            <div class="about__feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="21" y1="15" x2="21" y2="22"/><path d="M21 2a4 4 0 00-4 4v4a4 4 0 004 4"/></svg>
+            </div>
             <div class="about__feature-text">
               <strong>Signature Hash</strong>
               <span>Voted #1 by regulars</span>
             </div>
           </div>
           <div class="about__feature">
-            <div class="about__feature-icon">☕</div>
+            <div class="about__feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+            </div>
             <div class="about__feature-text">
               <strong>Artisan Coffee</strong>
               <span>Freshly ground daily</span>
             </div>
           </div>
           <div class="about__feature">
-            <div class="about__feature-icon">🌱</div>
+            <div class="about__feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22V12"/><path d="M5 12H2a10 10 0 0020 0h-3"/><path d="M5 3a7 7 0 0114 0v9H5V3z"/></svg>
+            </div>
             <div class="about__feature-text">
               <strong>Veg &amp; Vegan</strong>
               <span>Always on the menu</span>
             </div>
           </div>
           <div class="about__feature">
-            <div class="about__feature-icon">🥡</div>
+            <div class="about__feature-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+            </div>
             <div class="about__feature-text">
               <strong>Takeaway</strong>
               <span>Ready to collect</span>
@@ -153,7 +180,7 @@
       <div class="menu__grid">
 
         <div class="menu__card fade-up">
-          <div class="menu__card-img" style="--c1:#5C3D2E;--c2:#C0312B;">🥔</div>
+          <div class="menu__card-img" style="--c1:#5C3D2E;--c2:#C0312B;"></div>
           <div class="menu__card-body">
             <div class="menu__card-tag">Signature</div>
             <div class="menu__card-name">Bacon Hash</div>
@@ -162,7 +189,7 @@
         </div>
 
         <div class="menu__card fade-up">
-          <div class="menu__card-img" style="--c1:#8B1A17;--c2:#D4632E;">🌶</div>
+          <div class="menu__card-img" style="--c1:#8B1A17;--c2:#D4632E;"></div>
           <div class="menu__card-body">
             <div class="menu__card-tag">Lunch</div>
             <div class="menu__card-name">Cajun Chicken Ciabatta</div>
@@ -171,7 +198,7 @@
         </div>
 
         <div class="menu__card fade-up">
-          <div class="menu__card-img" style="--c1:#2C5C2E;--c2:#5C8C30;">🍳</div>
+          <div class="menu__card-img" style="--c1:#2C5C2E;--c2:#5C8C30;"></div>
           <div class="menu__card-body">
             <div class="menu__card-tag">Brunch</div>
             <div class="menu__card-name">Mozzarella Hash</div>
@@ -180,7 +207,7 @@
         </div>
 
         <div class="menu__card fade-up">
-          <div class="menu__card-img" style="--c1:#2C4A5C;--c2:#2C8C8C;">🐟</div>
+          <div class="menu__card-img" style="--c1:#2C4A5C;--c2:#2C8C8C;"></div>
           <div class="menu__card-body">
             <div class="menu__card-tag">Brunch</div>
             <div class="menu__card-name">Salmon Hash</div>
@@ -189,7 +216,7 @@
         </div>
 
         <div class="menu__card fade-up">
-          <div class="menu__card-img" style="--c1:#6B4C2E;--c2:#C09060;">🍞</div>
+          <div class="menu__card-img" style="--c1:#6B4C2E;--c2:#C09060;"></div>
           <div class="menu__card-body">
             <div class="menu__card-tag">Brunch</div>
             <div class="menu__card-name">Sourdough Breakfast</div>
@@ -198,7 +225,7 @@
         </div>
 
         <div class="menu__card fade-up">
-          <div class="menu__card-img" style="--c1:#8B4C8B;--c2:#C06B5C;">🥘</div>
+          <div class="menu__card-img" style="--c1:#8B4C8B;--c2:#C06B5C;"></div>
           <div class="menu__card-body">
             <div class="menu__card-tag">Special</div>
             <div class="menu__card-name">Korean Coriander Soup</div>
@@ -418,19 +445,19 @@
 
         <div class="location__info fade-up">
           <div class="location__info-card">
-            <h3><span>📍</span> Address</h3>
+            <h3><span class="loc-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></span> Address</h3>
             <p>Church Street<br>Kilcock<br>Co. Kildare<br>Ireland</p>
           </div>
           <div class="location__info-card">
-            <h3><span>📞</span> Phone</h3>
+            <h3><span class="loc-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.09 10.6 19.79 19.79 0 01.07 2 2 2 0 012.06 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span> Phone</h3>
             <a href="tel:016284392">(01) 628 4392</a>
           </div>
           <div class="location__info-card">
-            <h3><span>⏰</span> Hours Today</h3>
+            <h3><span class="loc-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="6" x2="12" y2="12"/><line x1="12" y1="12" x2="16" y2="14"/></svg></span> Hours Today</h3>
             <p id="todayHours">Mon – Fri: 8:30 am – 4:00 pm<br>Sat – Sun: 9:00 am – 4:00 pm</p>
           </div>
           <div class="location__info-card">
-            <h3><span>🚗</span> Getting Here</h3>
+            <h3><span class="loc-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> Getting Here</h3>
             <p>Located on Church St in the centre of Kilcock. Convenient parking available on and around the main street.</p>
           </div>
         </div>
@@ -621,7 +648,7 @@
       const close = 16;
       const isOpen = h >= open && h < close;
       const timeStr = isSatSun ? '9:00 am – 4:00 pm' : '8:30 am – 4:00 pm';
-      todayEl.innerHTML = `<strong>${today}</strong>: ${timeStr}<br><span style="color:${isOpen ? '#2C7C2E' : '#C0312B'};font-weight:600;">${isOpen ? '🟢 Open now' : '🔴 Closed now'}</span>`;
+      todayEl.innerHTML = `<strong>${today}</strong>: ${timeStr}<br><span style="display:inline-flex;align-items:center;gap:.35rem;font-weight:600;color:${isOpen ? '#2C7C2E' : '#C0312B'};"><span style="width:8px;height:8px;border-radius:50%;background:${isOpen ? '#2C7C2E' : '#C0312B'};display:inline-block;"></span>${isOpen ? 'Open now' : 'Closed now'}</span>`;
     }
   </script>
 
