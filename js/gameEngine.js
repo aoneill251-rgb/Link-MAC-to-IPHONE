@@ -13,11 +13,25 @@ class GameEngine {
     const diff = diffSettings[difficulty] || diffSettings.normal;
 
     const horses = [];
-    for (let i = 0; i < diff.startHorses; i++) {
+    const numFlat = Math.ceil(diff.startHorses / 2);
+    const numNH = diff.startHorses - numFlat;
+    for (let i = 0; i < numFlat; i++) {
       horses.push(
         HorseGenerator.generateHorse({
           quality: diff.startQuality + Math.floor(Math.random() * 15),
           owner: "player",
+          type: "flat",
+          fitness: 50 + Math.floor(Math.random() * 20),
+          morale: 60 + Math.floor(Math.random() * 20),
+        })
+      );
+    }
+    for (let i = 0; i < numNH; i++) {
+      horses.push(
+        HorseGenerator.generateHorse({
+          quality: diff.startQuality + Math.floor(Math.random() * 15),
+          owner: "player",
+          type: "nh",
           fitness: 50 + Math.floor(Math.random() * 20),
           morale: 60 + Math.floor(Math.random() * 20),
         })
@@ -43,6 +57,7 @@ class GameEngine {
       },
       currentRaces: [],
       raceResults: [],
+      stableView: "flat",
       achievements: [],
       stats: {
         totalWins: 0,
@@ -182,7 +197,7 @@ class GameEngine {
   processYearEnd(updates) {
     for (const horse of this.state.horses) {
       horse.age++;
-      const retireAge = horse.stats.jumping > 40 ? GAME_DATA.rules.retirementAgeNH : GAME_DATA.rules.retirementAgeFlat;
+      const retireAge = horse.type === "nh" ? GAME_DATA.rules.retirementAgeNH : GAME_DATA.rules.retirementAgeFlat;
       if (horse.age > retireAge) {
         updates.push({ text: `${horse.name} (age ${horse.age}) should be retired.`, type: "warning" });
       }

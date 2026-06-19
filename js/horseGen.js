@@ -37,8 +37,13 @@ class HorseGenerator {
     return prefs;
   }
 
-  static generateDistancePreference() {
-    const idealDistance = 1000 + Math.floor(Math.random() * 6) * 400;
+  static generateDistancePreference(type = "flat") {
+    let idealDistance;
+    if (type === "nh") {
+      idealDistance = 3200 + Math.floor(Math.random() * 5) * 400;
+    } else {
+      idealDistance = 1000 + Math.floor(Math.random() * 6) * 400;
+    }
     return {
       ideal: idealDistance,
       range: 400 + Math.floor(Math.random() * 400),
@@ -68,6 +73,32 @@ class HorseGenerator {
     return { ...pool[Math.floor(Math.random() * pool.length)] };
   }
 
+  static pickAIJockeyName(type = "flat") {
+    const names = type === "nh" ? GAME_DATA.realJockeys.nhNames : GAME_DATA.realJockeys.flatNames;
+    return names[Math.floor(Math.random() * names.length)];
+  }
+
+  static createAIJockey(type = "flat", quality = 50) {
+    const name = HorseGenerator.pickAIJockeyName(type);
+    const skill = Math.max(60, Math.min(85, quality + Math.floor((Math.random() - 0.5) * 20)));
+    return {
+      id: HorseGenerator.nextId++,
+      name,
+      nationality: Math.random() > 0.3 ? "GB" : "IE",
+      skill,
+      experience: HorseGenerator.generateStat(skill, 15),
+      fitness: 70 + Math.floor(Math.random() * 30),
+      style: ["front-runner", "stalker", "closer", "versatile"][Math.floor(Math.random() * 4)],
+      retainerFee: Math.floor(skill * 15),
+      rideFee: Math.floor(skill * 3),
+      winBonus: Math.floor(skill * 8),
+      available: true,
+      wins: Math.floor(Math.random() * 300),
+      rides: Math.floor(Math.random() * 2000 + 500),
+      nh: type === "nh",
+    };
+  }
+
   static createJockeyFromReal(realJockey) {
     return {
       id: HorseGenerator.nextId++,
@@ -88,20 +119,42 @@ class HorseGenerator {
   }
 
   static generateHorse(options = {}) {
-    const age = options.age || (2 + Math.floor(Math.random() * 8));
+    const type = options.type || "flat";
+    const minAge = type === "nh" ? 4 : 2;
+    const age = options.age || (minAge + Math.floor(Math.random() * (type === "nh" ? 8 : 8)));
     const quality = options.quality || (20 + Math.floor(Math.random() * 60));
     const sex = options.sex || (Math.random() > 0.5 ? "Colt" : "Filly");
     const coat = HorseGenerator.pickCoat();
-    const distPref = HorseGenerator.generateDistancePreference();
+    const distPref = HorseGenerator.generateDistancePreference(type);
 
-    const trainer = options.trainer || (options.owner !== "player" ? HorseGenerator.pickTrainer() : null);
+    const trainer = options.trainer || (options.owner !== "player" ? HorseGenerator.pickTrainer(type) : null);
     const aiOwner = options.owner !== "player" && options.owner !== "auction"
-      ? HorseGenerator.pickOwner()
+      ? HorseGenerator.pickOwner(type)
       : null;
+
+    let stats;
+    if (type === "nh") {
+      stats = {
+        speed: HorseGenerator.generateStat(quality * 0.85, 25),
+        stamina: HorseGenerator.generateStat(quality * 1.1, 20),
+        acceleration: HorseGenerator.generateStat(quality * 0.8, 25),
+        jumping: HorseGenerator.generateStat(quality * 0.95, 20),
+        temperament: HorseGenerator.generateStat(65, 35),
+      };
+    } else {
+      stats = {
+        speed: HorseGenerator.generateStat(quality, 25),
+        stamina: HorseGenerator.generateStat(quality, 25),
+        acceleration: HorseGenerator.generateStat(quality, 25),
+        jumping: HorseGenerator.generateStat(quality * 0.4, 30),
+        temperament: HorseGenerator.generateStat(60, 40),
+      };
+    }
 
     const horse = {
       id: HorseGenerator.nextId++,
       name: options.name || HorseGenerator.generateName(),
+      type,
       age,
       sex,
       coat,
@@ -109,13 +162,7 @@ class HorseGenerator {
       dam: options.dam || HorseGenerator.generateDamName(),
       trainer: trainer ? trainer.name : null,
       aiOwner: aiOwner ? aiOwner.name : null,
-      stats: {
-        speed: HorseGenerator.generateStat(quality, 25),
-        stamina: HorseGenerator.generateStat(quality, 25),
-        acceleration: HorseGenerator.generateStat(quality, 25),
-        jumping: HorseGenerator.generateStat(quality * 0.6, 30),
-        temperament: HorseGenerator.generateStat(60, 40),
-      },
+      stats,
       fitness: options.fitness || (40 + Math.floor(Math.random() * 30)),
       morale: options.morale || (50 + Math.floor(Math.random() * 30)),
       health: 100,

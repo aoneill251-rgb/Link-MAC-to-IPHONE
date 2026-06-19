@@ -6,6 +6,8 @@ class GameUI {
     this.selectedRace = null;
     this.raceAnimation = null;
     this.animationFrame = null;
+    this.raceEntrySelectedHorse = null;
+    this.raceEntrySelectedRace = null;
   }
 
   init() {
@@ -69,7 +71,7 @@ class GameUI {
   }
 
   flag(code) {
-    const flags = { GB: "🇬🇧", IE: "🇮🇪", FR: "🇫🇷", US: "🇺🇸", AU: "🇦🇺", JP: "🇯🇵", HK: "🇭🇰", UAE: "🇦🇪", IT: "🇮🇹", BR: "🇧🇷" };
+    const flags = { GB: "\u{1F1EC}\u{1F1E7}", IE: "\u{1F1EE}\u{1F1EA}", FR: "\u{1F1EB}\u{1F1F7}", US: "\u{1F1FA}\u{1F1F8}", AU: "\u{1F1E6}\u{1F1FA}", JP: "\u{1F1EF}\u{1F1F5}", HK: "\u{1F1ED}\u{1F1F0}", UAE: "\u{1F1E6}\u{1F1EA}", IT: "\u{1F1EE}\u{1F1F9}", BR: "\u{1F1E7}\u{1F1F7}" };
     return flags[code] || "";
   }
 
@@ -93,12 +95,20 @@ class GameUI {
     </svg>`;
   }
 
+  typeLabel(type) {
+    return type === "nh" ? "NH" : "Flat";
+  }
+
+  typeBadge(type) {
+    return `<span class="type-badge type-${type}">${this.typeLabel(type)}</span>`;
+  }
+
   // ── New Game ──
   renderNewGame() {
     return `
       <div class="new-game-screen">
         <div class="logo-section">
-          <h1 class="game-title">🏇 CHAMPION TRAINER</h1>
+          <h1 class="game-title">CHAMPION TRAINER</h1>
           <p class="game-subtitle">Horse Racing Management Simulator</p>
         </div>
         <div class="new-game-form card">
@@ -111,13 +121,13 @@ class GameUI {
             <label>Difficulty</label>
             <div class="difficulty-options">
               <button class="diff-btn" data-diff="easy">
-                <span class="diff-icon">🟢</span><span class="diff-label">Easy</span><span class="diff-desc">£200k, 4 horses</span>
+                <span class="diff-label">Easy</span><span class="diff-desc">£200k, 4 horses</span>
               </button>
               <button class="diff-btn active" data-diff="normal">
-                <span class="diff-icon">🟡</span><span class="diff-label">Normal</span><span class="diff-desc">£100k, 3 horses</span>
+                <span class="diff-label">Normal</span><span class="diff-desc">£100k, 3 horses</span>
               </button>
               <button class="diff-btn" data-diff="hard">
-                <span class="diff-icon">🔴</span><span class="diff-label">Hard</span><span class="diff-desc">£50k, 2 horses</span>
+                <span class="diff-label">Hard</span><span class="diff-desc">£50k, 2 horses</span>
               </button>
             </div>
           </div>
@@ -180,6 +190,8 @@ class GameUI {
     const isFlatSeason = GAME_DATA.rules.flatSeasonMonths.includes(s.calendar.month);
     const isNHSeason = GAME_DATA.rules.nhSeasonMonths.includes(s.calendar.month);
     const seasonText = isFlatSeason && isNHSeason ? "Flat & NH Season" : isFlatSeason ? "Flat Season" : isNHSeason ? "NH Season" : "AW Only";
+    const flatHorses = s.horses.filter((h) => h.type !== "nh");
+    const nhHorses = s.horses.filter((h) => h.type === "nh");
 
     return `
       <div class="dashboard">
@@ -188,7 +200,7 @@ class GameUI {
             <h2>${s.stableName}</h2>
             <span class="season-badge">${seasonText}</span>
           </div>
-          <button class="btn btn-primary btn-advance" id="advance-week-btn">Advance Week ▶</button>
+          <button class="btn btn-primary btn-advance" id="advance-week-btn">Advance Week</button>
         </div>
 
         ${notifications.length > 0 ? `
@@ -217,7 +229,8 @@ class GameUI {
           </div>
           <div class="card dash-card">
             <h3>Stable</h3>
-            <div class="stat-row"><span>Horses</span><span class="stat-val">${s.horses.length}</span></div>
+            <div class="stat-row"><span>Flat Horses</span><span class="stat-val">${flatHorses.length}</span></div>
+            <div class="stat-row"><span>NH Horses</span><span class="stat-val">${nhHorses.length}</span></div>
             <div class="stat-row"><span>Fit to Race</span><span class="stat-val">${s.horses.filter((h) => h.fitness >= 30 && !h.injured).length}</span></div>
             <div class="stat-row"><span>Injured</span><span class="stat-val">${s.horses.filter((h) => h.injured).length}</span></div>
           </div>
@@ -242,7 +255,7 @@ class GameUI {
               <div class="horse-mini-card ${h.injured ? "injured" : ""}">
                 <div class="horse-mini-color" style="background:${h.coat.color}"></div>
                 <div class="horse-mini-info">
-                  <strong>${h.name}</strong>
+                  <strong>${h.name} ${this.typeBadge(h.type || "flat")}</strong>
                   <span>${h.age}yo ${h.sex} | R:${h.rating} | F:${h.fitness}%</span>
                   <span>${h.injured ? `Injured (${h.injuryWeeksLeft}w)` : GAME_DATA.trainingRegimes.find((r) => r.id === h.training)?.icon + " " + GAME_DATA.trainingRegimes.find((r) => r.id === h.training)?.name}</span>
                 </div>
@@ -258,12 +271,28 @@ class GameUI {
   renderStable() {
     const s = this.engine.state;
     if (this.selectedHorse) return this.renderHorseDetail(this.selectedHorse);
+    const view = s.stableView || "flat";
+    const horses = s.horses.filter((h) => (h.type || "flat") === view);
     const auctionHorses = s.playerAuctionHorses || [];
+    const flatCount = s.horses.filter((h) => (h.type || "flat") === "flat").length;
+    const nhCount = s.horses.filter((h) => h.type === "nh").length;
+
     return `
       <div class="stable-view">
-        <h2>Your Stable (${s.horses.length}/20)</h2>
+        <div class="stable-header">
+          <h2>Your Stable (${s.horses.length}/20)</h2>
+          <div class="stable-toggle">
+            <button class="toggle-btn ${view === "flat" ? "active" : ""}" data-stable-view="flat">
+              Flat <span class="toggle-count">${flatCount}</span>
+            </button>
+            <button class="toggle-btn ${view === "nh" ? "active" : ""}" data-stable-view="nh">
+              National Hunt <span class="toggle-count">${nhCount}</span>
+            </button>
+          </div>
+        </div>
         <div class="horse-grid">
-          ${s.horses.map((h) => `
+          ${horses.length === 0 ? `<div class="card empty-stable"><p>No ${view === "nh" ? "National Hunt" : "Flat"} horses in your stable.</p></div>` : ""}
+          ${horses.map((h) => `
             <div class="card horse-card ${h.injured ? "injured" : ""}" data-horse-id="${h.id}">
               <div class="horse-card-header">
                 ${this.horseSVG(h.coat, 50)}
@@ -278,6 +307,7 @@ class GameUI {
                 <div class="stat-bar-group"><label>SPD</label><div class="stat-bar"><div class="stat-fill speed" style="width:${h.stats.speed}%"></div></div><span class="stat-num">${h.stats.speed}</span></div>
                 <div class="stat-bar-group"><label>STA</label><div class="stat-bar"><div class="stat-fill stamina" style="width:${h.stats.stamina}%"></div></div><span class="stat-num">${h.stats.stamina}</span></div>
                 <div class="stat-bar-group"><label>ACC</label><div class="stat-bar"><div class="stat-fill accel" style="width:${h.stats.acceleration}%"></div></div><span class="stat-num">${h.stats.acceleration}</span></div>
+                ${h.type === "nh" ? `<div class="stat-bar-group"><label>JMP</label><div class="stat-bar"><div class="stat-fill jumping" style="width:${h.stats.jumping}%"></div></div><span class="stat-num">${h.stats.jumping}</span></div>` : ""}
                 <div class="stat-bar-group"><label>TMP</label><div class="stat-bar"><div class="stat-fill temp" style="width:${h.stats.temperament}%"></div></div><span class="stat-num">${h.stats.temperament}</span></div>
               </div>
               <div class="horse-card-footer">
@@ -298,7 +328,7 @@ class GameUI {
             <div class="auction-listing">
               ${this.horseSVG(h.coat, 36)}
               <div class="auction-listing-info">
-                <strong>${h.name}</strong> — ${h.age}yo ${h.sex}
+                <strong>${h.name}</strong> ${this.typeBadge(h.type || "flat")} — ${h.age}yo ${h.sex}
                 <span>Guide: £${h.auctionPrice.toLocaleString()} | Current bid: ${h.currentBid > 0 ? `£${h.currentBid.toLocaleString()} (${h.bidderName})` : "No bids yet"} | ${h.auctionWeeksLeft}w left</span>
               </div>
             </div>
@@ -319,7 +349,7 @@ class GameUI {
           <div class="horse-detail-header">
             ${this.horseSVG(horse.coat, 80)}
             <div>
-              <h2>${horse.name}</h2>
+              <h2>${horse.name} ${this.typeBadge(horse.type || "flat")}</h2>
               <p>${horse.age}yo ${horse.coat.name} ${horse.sex} | by <strong>${horse.sire}</strong> out of <strong>${horse.dam}</strong></p>
               <p>Rating: <strong>${horse.rating}</strong> | Value: <strong>£${value.toLocaleString()}</strong></p>
               <p class="horse-owner-line">${this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 16)} Owner: <strong>${s.stableName}</strong></p>
@@ -385,6 +415,13 @@ class GameUI {
   }
 
   bindStable() {
+    document.querySelectorAll(".toggle-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.engine.state.stableView = btn.dataset.stableView;
+        this.engine.saveGame();
+        this.showView("stable");
+      });
+    });
     document.querySelectorAll(".horse-card").forEach((card) => {
       card.addEventListener("click", (e) => {
         if (e.target.closest(".btn-enter-race")) return;
@@ -396,9 +433,10 @@ class GameUI {
     document.querySelectorAll(".btn-enter-race").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        this.selectedRace = null;
+        const id = parseInt(btn.dataset.horseId);
+        this.raceEntrySelectedHorse = this.engine.state.horses.find((h) => h.id === id);
+        this.raceEntrySelectedRace = null;
         this.showView("races");
-        this.showToast("Select a race to enter your horse", "info");
       });
     });
     const backBtn = document.getElementById("back-to-stable");
@@ -417,9 +455,9 @@ class GameUI {
     const enterRaceBtn = document.getElementById("enter-race-btn");
     if (enterRaceBtn) {
       enterRaceBtn.addEventListener("click", () => {
-        this.selectedRace = null;
+        this.raceEntrySelectedHorse = this.selectedHorse;
+        this.raceEntrySelectedRace = null;
         this.showView("races");
-        this.showToast("Select a race to enter your horse", "info");
       });
     }
     const sellBtn = document.getElementById("sell-horse-btn");
@@ -435,34 +473,157 @@ class GameUI {
     }
   }
 
-  // ── Races ──
+  // ── Races (Split-Panel Starters Orders Style) ──
   renderRaces() {
     const s = this.engine.state;
     if (this.selectedRace) return this.renderRaceDetail(this.selectedRace);
+
+    const eligibleHorses = s.horses.filter((h) => !h.injured && h.fitness >= 30 && h.age >= 2);
+    const selHorse = this.raceEntrySelectedHorse;
+    const selRace = this.raceEntrySelectedRace;
+
+    let filteredRaces = s.currentRaces;
+    if (selHorse) {
+      filteredRaces = s.currentRaces.filter((r) => {
+        const check = RaceEngine.canEnterRace(selHorse, r, s);
+        return check.ok && !r.playerEntries.find((e) => e.horse.id === selHorse.id);
+      });
+    }
+
+    let filteredHorses = eligibleHorses;
+    if (selRace) {
+      filteredHorses = eligibleHorses.filter((h) => {
+        const check = RaceEngine.canEnterRace(h, selRace, s);
+        return check.ok && !selRace.playerEntries.find((e) => e.horse.id === h.id);
+      });
+    }
+
     return `
-      <div class="races-view">
-        <h2>Race Card — Week ${s.calendar.week}, ${GAME_DATA.months[s.calendar.month]} ${s.calendar.year}</h2>
-        <div class="race-list">
-          ${s.currentRaces.map((r) => `
-            <div class="card race-card ${r.isChampionship ? "championship" : ""}" data-race-id="${r.id}">
-              <div class="race-card-header">
-                <h3>${r.isChampionship ? this.flag(r.country) + " " : ""}${r.name}</h3>
-                <span class="race-class-badge class-${Math.max(0, r.class.class)}">${r.class.name}</span>
-              </div>
-              <div class="race-info">
-                <span>${r.track}</span>
-                <span>${HorseGenerator.formatDistance(r.distance)}</span>
-                <span>${r.surface}</span>
-                <span>${r.ground}</span>
-                <span>£${r.prize.toLocaleString()}</span>
-                <span>${r.runners.length + r.playerEntries.length} runners</span>
-                ${r.ageRestriction ? `<span>${r.ageRestriction}yo only</span>` : ""}
-                ${r.sexRestriction ? `<span>${r.sexRestriction} only</span>` : ""}
-              </div>
-              ${r.playerEntries.length > 0 ? `<div class="race-entries">Your entries: ${r.playerEntries.map((e) => e.horse.name).join(", ")}</div>` : ""}
-            </div>
-          `).join("")}
+      <div class="race-entry-view">
+        <div class="race-entry-header">
+          <h2>Race Entry — Week ${s.calendar.week}, ${GAME_DATA.months[s.calendar.month]} ${s.calendar.year}</h2>
+          <p class="race-entry-hint">${selHorse ? `Showing races eligible for <strong>${selHorse.name}</strong>` : selRace ? `Showing horses eligible for <strong>${selRace.name}</strong>` : "Select a horse or race to filter"}</p>
         </div>
+        <div class="split-panel">
+          <!-- Left Panel: Horses -->
+          <div class="panel panel-horses">
+            <div class="panel-header">
+              <h3>Your Horses</h3>
+              ${selHorse ? `<button class="btn btn-secondary btn-xs" id="clear-horse-filter">Clear</button>` : ""}
+            </div>
+            <div class="panel-list">
+              ${filteredHorses.map((h) => {
+                const isSelected = selHorse && selHorse.id === h.id;
+                const distLabel = HorseGenerator.getDistanceLabel(h.distancePreference.ideal);
+                return `
+                <div class="panel-item horse-item ${isSelected ? "selected" : ""}" data-horse-id="${h.id}">
+                  <div class="panel-item-left">
+                    <span class="horse-color-swatch-sm" style="background:${h.coat.color}"></span>
+                    <div class="panel-item-info">
+                      <strong>${h.name}</strong> ${this.typeBadge(h.type || "flat")}
+                      <span>${h.age}yo ${h.sex} | R${h.rating} | F:${h.fitness}%</span>
+                      <span class="text-muted">${distLabel} (${HorseGenerator.formatDistance(h.distancePreference.ideal)})</span>
+                    </div>
+                  </div>
+                  <div class="panel-item-right">
+                    <div class="horse-mini-form">${h.form.slice(-3).map((f) => `<span class="form-dot form-${f <= 1 ? "win" : f <= 3 ? "place" : "other"}">${f}</span>`).join("")}</div>
+                  </div>
+                </div>`;
+              }).join("")}
+              ${filteredHorses.length === 0 ? `<div class="panel-empty">No eligible horses${selRace ? " for this race" : ""}</div>` : ""}
+            </div>
+          </div>
+
+          <!-- Right Panel: Races -->
+          <div class="panel panel-races">
+            <div class="panel-header">
+              <h3>Race Card</h3>
+              ${selRace ? `<button class="btn btn-secondary btn-xs" id="clear-race-filter">Clear</button>` : ""}
+            </div>
+            <div class="panel-list">
+              ${filteredRaces.map((r) => {
+                const isSelected = selRace && selRace.id === r.id;
+                const hasEntry = r.playerEntries.length > 0;
+                return `
+                <div class="panel-item race-item ${isSelected ? "selected" : ""} ${r.isChampionship ? "championship" : ""} ${hasEntry ? "entered" : ""}" data-race-id="${r.id}">
+                  <div class="panel-item-left">
+                    <div class="panel-item-info">
+                      <strong>${r.isChampionship ? this.flag(r.country) + " " : ""}${r.name}</strong>
+                      <span>${r.track} | ${HorseGenerator.formatDistance(r.distance)} | ${r.ground} | ${r.surface}</span>
+                      <span class="text-muted">£${r.prize.toLocaleString()} | ${r.runners.length + r.playerEntries.length} runners${r.ageRestriction ? ` | ${r.ageRestriction}yo` : ""}${r.sexRestriction ? ` | ${r.sexRestriction}` : ""}</span>
+                    </div>
+                  </div>
+                  <div class="panel-item-right">
+                    <span class="race-class-badge class-${Math.max(0, r.class.class)}">${r.class.name}</span>
+                    ${hasEntry ? `<span class="entry-indicator">ENTERED</span>` : ""}
+                  </div>
+                </div>`;
+              }).join("")}
+              ${filteredRaces.length === 0 ? `<div class="panel-empty">No eligible races${selHorse ? " for this horse" : ""}</div>` : ""}
+            </div>
+          </div>
+        </div>
+
+        <!-- Entry Form (shown when both horse and race are selected) -->
+        ${selHorse && selRace ? this.renderEntryForm(selHorse, selRace) : ""}
+
+        <!-- Entered Races Summary -->
+        ${this.renderEnteredRaces()}
+      </div>`;
+  }
+
+  renderEntryForm(horse, race) {
+    const s = this.engine.state;
+    const distFit = HorseGenerator.getDistanceFitness(horse, race.distance);
+    const groundFit = HorseGenerator.getGroundFitness(horse, race.ground);
+    const weight = HorseGenerator.calculateWeight(horse, race);
+    const jockeys = [...s.retainedJockeys, ...s.jockeys.slice(0, 10)];
+    const raceType = race.type || "flat";
+    const typeJockeys = jockeys.filter((j) => raceType === "nh" ? j.nh : !j.nh);
+    const availableJockeys = typeJockeys.length > 0 ? typeJockeys : jockeys;
+
+    return `
+      <div class="card entry-form">
+        <h3>Enter ${horse.name} in ${race.name}</h3>
+        <div class="entry-form-grid">
+          <div class="entry-form-info">
+            <div class="entry-match">
+              <span class="suit-badge ${distFit >= 0.9 ? "good" : distFit >= 0.7 ? "ok" : "poor"}">Distance: ${Math.floor(distFit * 100)}%</span>
+              <span class="suit-badge ${groundFit >= 0.9 ? "good" : groundFit >= 0.7 ? "ok" : "poor"}">Going: ${Math.floor(groundFit * 100)}%</span>
+              <span class="entry-weight">${HorseGenerator.formatWeight(weight)}</span>
+            </div>
+          </div>
+          <div class="entry-form-controls">
+            <select class="jockey-picker" id="entry-jockey-select">
+              ${availableJockeys.map((j) => `<option value="${j.id}">${j.name} ${this.flag(j.nationality)} (${j.skill}) ${j.nh ? "[NH]" : "[F]"}</option>`).join("")}
+              <option value="0">Freelance Jockey</option>
+            </select>
+            <button class="btn btn-primary" id="confirm-entry-btn">Confirm Entry</button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  renderEnteredRaces() {
+    const s = this.engine.state;
+    const entered = s.currentRaces.filter((r) => r.playerEntries.length > 0);
+    if (entered.length === 0) return "";
+
+    return `
+      <div class="card entered-races">
+        <h3>Your Entries This Week</h3>
+        ${entered.map((r) => `
+          <div class="entered-race-row">
+            <div class="entered-race-info">
+              <strong>${r.isChampionship ? this.flag(r.country) + " " : ""}${r.name}</strong>
+              <span>${r.track} | ${HorseGenerator.formatDistance(r.distance)} | ${r.ground}</span>
+            </div>
+            <div class="entered-race-horses">
+              ${r.playerEntries.map((e) => `<span class="entered-horse">${e.horse.name} (${e.jockey?.name || "TBA"})</span>`).join("")}
+            </div>
+            <button class="btn btn-primary btn-sm btn-run-race" data-race-id="${r.id}">Run Race</button>
+          </div>
+        `).join("")}
       </div>`;
   }
 
@@ -489,7 +650,7 @@ class GameUI {
             <div class="stat-row"><span>Runners</span><span>${race.runners.length + race.playerEntries.length}</span></div>
             ${race.sexRestriction ? `<div class="stat-row"><span>Conditions</span><span>${race.sexRestriction} only</span></div>` : ""}
             ${race.ageRestriction ? `<div class="stat-row"><span>Age</span><span>${race.ageRestriction} year olds</span></div>` : ""}
-            <div class="stat-row"><span>Type</span><span>${race.class.type === "handicap" ? "Handicap" : race.class.type === "pattern" ? "Pattern/Group" : "Conditions"}</span></div>
+            <div class="stat-row"><span>Type</span><span>${race.type === "nh" ? "National Hunt" : "Flat"} — ${race.class.type === "handicap" ? "Handicap" : race.class.type === "pattern" ? "Pattern/Group" : "Conditions"}</span></div>
           </div>
         </div>
 
@@ -518,7 +679,7 @@ class GameUI {
               <div class="entry-option" data-horse-id="${h.id}">
                 <div class="entry-horse-info">
                   <span class="horse-color-swatch-sm" style="background:${h.coat.color}"></span>
-                  <strong>${h.name}</strong>
+                  <strong>${h.name}</strong> ${this.typeBadge(h.type || "flat")}
                   <span>${h.age}yo ${h.sex} | R${h.rating} | F:${h.fitness}% | ${HorseGenerator.formatWeight(weight)}</span>
                 </div>
                 <div class="entry-suitability">
@@ -562,6 +723,72 @@ class GameUI {
   }
 
   bindRaces() {
+    // Split-panel horse selection
+    document.querySelectorAll(".horse-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const id = parseInt(item.dataset.horseId);
+        const horse = this.engine.state.horses.find((h) => h.id === id);
+        if (this.raceEntrySelectedHorse && this.raceEntrySelectedHorse.id === id) {
+          this.raceEntrySelectedHorse = null;
+        } else {
+          this.raceEntrySelectedHorse = horse;
+        }
+        this.raceEntrySelectedRace = null;
+        this.showView("races");
+      });
+    });
+
+    // Split-panel race selection
+    document.querySelectorAll(".race-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const id = parseInt(item.dataset.raceId);
+        const race = this.engine.state.currentRaces.find((r) => r.id === id);
+        if (this.raceEntrySelectedRace && this.raceEntrySelectedRace.id === id) {
+          this.selectedRace = race;
+          this.showView("races");
+          return;
+        }
+        if (this.raceEntrySelectedRace && this.raceEntrySelectedRace.id === id) {
+          this.raceEntrySelectedRace = null;
+        } else {
+          this.raceEntrySelectedRace = race;
+        }
+        this.raceEntrySelectedHorse = this.raceEntrySelectedHorse || null;
+        this.showView("races");
+      });
+    });
+
+    // Clear filters
+    const clearHorse = document.getElementById("clear-horse-filter");
+    if (clearHorse) clearHorse.addEventListener("click", () => { this.raceEntrySelectedHorse = null; this.showView("races"); });
+    const clearRace = document.getElementById("clear-race-filter");
+    if (clearRace) clearRace.addEventListener("click", () => { this.raceEntrySelectedRace = null; this.showView("races"); });
+
+    // Confirm entry from split-panel
+    const confirmBtn = document.getElementById("confirm-entry-btn");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", () => {
+        const jockeySelect = document.getElementById("entry-jockey-select");
+        const jockeyId = jockeySelect ? parseInt(jockeySelect.value) : 0;
+        const result = this.engine.enterRace(this.raceEntrySelectedRace.id, this.raceEntrySelectedHorse.id, jockeyId || null);
+        this.showToast(result.message, result.success ? "success" : "error");
+        if (result.success) {
+          this.raceEntrySelectedHorse = null;
+          this.raceEntrySelectedRace = null;
+        }
+        this.showView("races");
+      });
+    }
+
+    // Run race from entered races summary
+    document.querySelectorAll(".btn-run-race").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.startRaceAnimation(parseInt(btn.dataset.raceId));
+      });
+    });
+
+    // Race card list (old style fallback)
     document.querySelectorAll(".race-card").forEach((card) => {
       card.addEventListener("click", () => {
         const id = parseInt(card.dataset.raceId);
@@ -569,6 +796,7 @@ class GameUI {
         this.showView("races");
       });
     });
+
     const backBtn = document.getElementById("back-to-races");
     if (backBtn) backBtn.addEventListener("click", () => { this.selectedRace = null; this.showView("races"); });
     document.querySelectorAll(".btn-enter").forEach((btn) => {
@@ -634,11 +862,11 @@ class GameUI {
 
       const snapshot = result.positions[Math.min(step - 1, totalSteps - 1)];
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = "#2d5a1e";
+      ctx.fillStyle = "#1a3a1a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const laneHeight = Math.min(30, (canvas.height - 60) / allRunners.length);
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
       ctx.setLineDash([5, 5]);
       for (let q = 1; q <= 3; q++) {
         const x = 60 + (canvas.width - 120) * (q / 4);
@@ -647,7 +875,7 @@ class GameUI {
       ctx.setLineDash([]);
 
       const finishX = canvas.width - 60;
-      ctx.strokeStyle = "white"; ctx.lineWidth = 3;
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(finishX, 10); ctx.lineTo(finishX, canvas.height - 10); ctx.stroke();
       ctx.lineWidth = 1;
 
@@ -658,16 +886,16 @@ class GameUI {
         const isPlayer = playerIds.includes(s.id);
 
         if (isPlayer) {
-          ctx.fillStyle = "rgba(255,215,0,0.1)";
+          ctx.fillStyle = "rgba(255,215,0,0.08)";
           ctx.fillRect(0, 30 + i * laneHeight, canvas.width, laneHeight);
         }
         ctx.fillStyle = colors[i];
         ctx.beginPath(); ctx.ellipse(x, y, 12, 6, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = isPlayer ? "#FFD700" : "rgba(255,255,255,0.5)";
+        ctx.strokeStyle = isPlayer ? "#FFD700" : "rgba(255,255,255,0.4)";
         ctx.lineWidth = isPlayer ? 2 : 1; ctx.stroke();
-        ctx.fillStyle = isPlayer ? "#FFD700" : "#fff";
+        ctx.fillStyle = isPlayer ? "#FFD700" : "#aaa";
         ctx.beginPath(); ctx.arc(x - 4, y - 4, 3, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = isPlayer ? "#FFD700" : "#ddd";
+        ctx.fillStyle = isPlayer ? "#FFD700" : "#ccc";
         ctx.font = isPlayer ? "bold 10px monospace" : "9px monospace";
         ctx.fillText(names[i].substring(0, 14), x + 16, y + 3);
       });
@@ -757,8 +985,8 @@ class GameUI {
             <div class="auction-listing">
               ${this.horseSVG(h.coat, 40)}
               <div class="auction-listing-info">
-                <strong>${h.name}</strong> — ${h.age}yo ${h.sex} | Guide: £${h.auctionPrice.toLocaleString()}
-                <span>Current bid: ${h.currentBid > 0 ? `£${h.currentBid.toLocaleString()} (${h.bidderName})` : "No bids yet"} | ${h.auctionWeeksLeft} week${h.auctionWeeksLeft !== 1 ? "s" : ""} remaining</span>
+                <strong>${h.name}</strong> ${this.typeBadge(h.type || "flat")} — ${h.age}yo ${h.sex}
+                <span>Guide: £${h.auctionPrice.toLocaleString()} | Current bid: ${h.currentBid > 0 ? `£${h.currentBid.toLocaleString()} (${h.bidderName})` : "No bids yet"} | ${h.auctionWeeksLeft} week${h.auctionWeeksLeft !== 1 ? "s" : ""} remaining</span>
               </div>
             </div>
           `).join("")}
@@ -827,7 +1055,7 @@ class GameUI {
             ${mares.map((m) => `
               <div class="breed-option" data-mare-id="${m.id}">
                 <span class="horse-color-swatch-sm" style="background:${m.coat.color}"></span>
-                <strong>${m.name}</strong>
+                <strong>${m.name}</strong> ${this.typeBadge(m.type || "flat")}
                 <span>${m.age}yo | SPD:${m.stats.speed} STA:${m.stats.stamina}</span>
               </div>
             `).join("")}
@@ -909,7 +1137,7 @@ class GameUI {
                   <div class="stat-row"><span>Weekly Fee</span><span>£${j.retainerFee.toLocaleString()}</span></div>
                   <div class="stat-row"><span>Ride Fee</span><span>£${j.rideFee.toLocaleString()}</span></div>
                   <div class="stat-row"><span>Record</span><span>${j.wins} wins / ${j.rides} rides (${j.rides > 0 ? Math.floor(j.wins / j.rides * 100) : 0}%)</span></div>
-                  ${j.nh ? `<div class="stat-row"><span>Type</span><span>National Hunt</span></div>` : ""}
+                  <div class="stat-row"><span>Type</span><span>${j.nh ? "National Hunt" : "Flat"}</span></div>
                 </div>
                 <button class="btn btn-danger btn-release" data-jockey-id="${j.id}">Release</button>
               </div>
@@ -929,7 +1157,7 @@ class GameUI {
                   <div class="stat-row"><span>Weekly Fee</span><span>£${j.retainerFee.toLocaleString()}</span></div>
                   <div class="stat-row"><span>Ride Fee</span><span>£${j.rideFee.toLocaleString()}</span></div>
                   <div class="stat-row"><span>Record</span><span>${j.wins} wins / ${j.rides} rides (${j.rides > 0 ? Math.floor(j.wins / j.rides * 100) : 0}%)</span></div>
-                  ${j.nh ? `<div class="stat-row"><span>Type</span><span>National Hunt</span></div>` : ""}
+                  <div class="stat-row"><span>Type</span><span>${j.nh ? "National Hunt" : "Flat"}</span></div>
                 </div>
                 <button class="btn btn-primary btn-hire" data-jockey-id="${j.id}">Retain</button>
               </div>

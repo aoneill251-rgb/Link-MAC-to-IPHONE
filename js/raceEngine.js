@@ -213,9 +213,14 @@ class RaceEngine {
     const runners = [];
     for (let j = 0; j < count; j++) {
       const quality = raceClass.minRating + Math.floor(Math.random() * (raceClass.maxRating - raceClass.minRating));
-      const horse = HorseGenerator.generateHorse({ quality, owner: "ai" });
-      const realJockey = HorseGenerator.pickRealJockey(type, quality);
-      const jockey = HorseGenerator.createJockeyFromReal(realJockey);
+      const horse = HorseGenerator.generateHorse({ quality, owner: "ai", type: type || "flat" });
+      let jockey;
+      if (quality > 60 || Math.random() > 0.5) {
+        const realJockey = HorseGenerator.pickRealJockey(type, quality);
+        jockey = HorseGenerator.createJockeyFromReal(realJockey);
+      } else {
+        jockey = HorseGenerator.createAIJockey(type, quality);
+      }
       const weight = HorseGenerator.calculateWeight(horse, { distance, class: raceClass, isChampionship: false, sexRestriction: null });
       runners.push({ horse, jockey, weight });
     }
@@ -306,6 +311,15 @@ class RaceEngine {
 
     if (race.type === "nh" && horse.age < 4) {
       return { ok: false, reason: "Must be 4+ for National Hunt racing" };
+    }
+
+    if (horse.type && race.type) {
+      if (race.type === "nh" && horse.type === "flat") {
+        return { ok: false, reason: "Flat horse cannot enter National Hunt races" };
+      }
+      if (race.type === "flat" && horse.type === "nh") {
+        return { ok: false, reason: "NH horse cannot enter Flat races" };
+      }
     }
 
     return { ok: true };
