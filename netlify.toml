@@ -1,7 +1,8 @@
 [[redirects]]
   from = "/"
   to = "/game.html"
-  status = 302
+  status = 301
+  force = true
 
 [[redirects]]
   from = "/game"
