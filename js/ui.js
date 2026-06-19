@@ -73,6 +73,26 @@ class GameUI {
     return flags[code] || "";
   }
 
+  horseSVG(coat, size = 60) {
+    const c = coat.color;
+    const m = coat.mane;
+    return `<svg viewBox="0 0 200 150" width="${size}" height="${size * 0.75}" style="flex-shrink:0">
+      <path d="M160,45 C158,35 150,25 140,22 L138,15 C137,12 133,10 130,12 L128,18 C122,16 115,18 110,22 L100,28 C90,24 75,26 65,32 C55,38 48,48 50,60 L42,72 C38,78 36,85 38,92 L35,110 C34,115 37,118 40,118 L48,118 L50,108 C52,100 55,92 60,85 L65,80 C70,88 75,95 75,105 L75,118 L83,118 L85,105 C87,95 90,88 95,82 C100,88 105,95 106,105 L106,118 L114,118 L115,102 C116,92 118,85 122,78 L130,85 L130,118 L138,118 L140,100 C142,90 145,82 148,76 L155,82 L155,118 L163,118 L163,95 C168,85 170,75 168,65 C166,55 163,50 160,45Z" fill="${c}" stroke="${m}" stroke-width="1.5"/>
+      <path d="M135,14 C132,8 128,5 126,8 L128,18 C131,16 134,15 135,14Z" fill="${m}"/>
+      <path d="M50,60 C45,58 38,62 35,68 C38,65 42,63 48,64 L50,60Z" fill="${m}" opacity="0.7"/>
+      <circle cx="125" cy="24" r="2.5" fill="#1a1a1a"/>
+      <ellipse cx="133" cy="16" rx="3" ry="1.5" fill="${m}" opacity="0.5"/>
+    </svg>`;
+  }
+
+  silksSVG(color1, color2, size = 24) {
+    return `<svg viewBox="0 0 30 36" width="${size}" height="${size * 1.2}" style="flex-shrink:0">
+      <path d="M5,8 L15,2 L25,8 L25,28 L20,32 L15,30 L10,32 L5,28Z" fill="${color1}" stroke="${color2}" stroke-width="1.5"/>
+      <path d="M10,12 L15,8 L20,12 L20,22 L15,18 L10,22Z" fill="${color2}" opacity="0.8"/>
+      <line x1="15" y1="2" x2="15" y2="8" stroke="${color2}" stroke-width="1"/>
+    </svg>`;
+  }
+
   // ── New Game ──
   renderNewGame() {
     return `
@@ -101,6 +121,16 @@ class GameUI {
               </button>
             </div>
           </div>
+          <div class="form-group">
+            <label>Racing Silks</label>
+            <div class="silks-picker">
+              <div class="silks-preview" id="silks-preview"></div>
+              <div class="silks-colors">
+                <div><label>Primary</label><input type="color" id="silks-primary" value="#f59e0b" /></div>
+                <div><label>Secondary</label><input type="color" id="silks-secondary" value="#000000" /></div>
+              </div>
+            </div>
+          </div>
           <button class="btn btn-primary btn-large" id="start-game-btn">Start Career</button>
           ${this.engine.loadGame() !== false ? `<button class="btn btn-secondary" id="continue-game-btn" style="margin-top:10px;width:100%">Continue Saved Game</button>` : ""}
         </div>
@@ -116,9 +146,20 @@ class GameUI {
         diff = btn.dataset.diff;
       });
     });
+    const preview = document.getElementById("silks-preview");
+    const primaryInput = document.getElementById("silks-primary");
+    const secondaryInput = document.getElementById("silks-secondary");
+    const updatePreview = () => {
+      if (preview) preview.innerHTML = this.silksSVG(primaryInput.value, secondaryInput.value, 48);
+    };
+    updatePreview();
+    if (primaryInput) primaryInput.addEventListener("input", updatePreview);
+    if (secondaryInput) secondaryInput.addEventListener("input", updatePreview);
     document.getElementById("start-game-btn").addEventListener("click", () => {
       const name = document.getElementById("stable-name-input").value.trim() || "My Stable";
-      this.engine.newGame(name, diff);
+      const silksColor = primaryInput ? primaryInput.value : "#f59e0b";
+      const silksSecondary = secondaryInput ? secondaryInput.value : "#000000";
+      this.engine.newGame(name, diff, silksColor, silksSecondary);
       this.showView("dashboard");
       this.showToast("Welcome to Champion Trainer! Good luck!", "success");
     });
@@ -217,6 +258,7 @@ class GameUI {
   renderStable() {
     const s = this.engine.state;
     if (this.selectedHorse) return this.renderHorseDetail(this.selectedHorse);
+    const auctionHorses = s.playerAuctionHorses || [];
     return `
       <div class="stable-view">
         <h2>Your Stable (${s.horses.length}/20)</h2>
@@ -224,28 +266,49 @@ class GameUI {
           ${s.horses.map((h) => `
             <div class="card horse-card ${h.injured ? "injured" : ""}" data-horse-id="${h.id}">
               <div class="horse-card-header">
-                <div class="horse-color-swatch" style="background:${h.coat.color}; border: 2px solid ${h.coat.mane}"></div>
-                <div><h3>${h.name}</h3><span class="horse-subtitle">${h.age}yo ${h.coat.name} ${h.sex}</span></div>
+                ${this.horseSVG(h.coat, 50)}
+                <div>
+                  <h3>${h.name}</h3>
+                  <span class="horse-subtitle">${h.age}yo ${h.coat.name} ${h.sex}</span>
+                  <span class="horse-owner-line">${this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 14)} ${s.stableName}</span>
+                </div>
                 <div class="horse-rating">R${h.rating}</div>
               </div>
               <div class="horse-stats-mini">
-                <div class="stat-bar-group"><label>SPD</label><div class="stat-bar"><div class="stat-fill speed" style="width:${h.stats.speed}%"></div></div></div>
-                <div class="stat-bar-group"><label>STA</label><div class="stat-bar"><div class="stat-fill stamina" style="width:${h.stats.stamina}%"></div></div></div>
-                <div class="stat-bar-group"><label>ACC</label><div class="stat-bar"><div class="stat-fill accel" style="width:${h.stats.acceleration}%"></div></div></div>
-                <div class="stat-bar-group"><label>TMP</label><div class="stat-bar"><div class="stat-fill temp" style="width:${h.stats.temperament}%"></div></div></div>
+                <div class="stat-bar-group"><label>SPD</label><div class="stat-bar"><div class="stat-fill speed" style="width:${h.stats.speed}%"></div></div><span class="stat-num">${h.stats.speed}</span></div>
+                <div class="stat-bar-group"><label>STA</label><div class="stat-bar"><div class="stat-fill stamina" style="width:${h.stats.stamina}%"></div></div><span class="stat-num">${h.stats.stamina}</span></div>
+                <div class="stat-bar-group"><label>ACC</label><div class="stat-bar"><div class="stat-fill accel" style="width:${h.stats.acceleration}%"></div></div><span class="stat-num">${h.stats.acceleration}</span></div>
+                <div class="stat-bar-group"><label>TMP</label><div class="stat-bar"><div class="stat-fill temp" style="width:${h.stats.temperament}%"></div></div><span class="stat-num">${h.stats.temperament}</span></div>
               </div>
               <div class="horse-card-footer">
                 <span>Fit: ${h.fitness}%</span>
                 <span>${h.injured ? `Injured ${h.injuryWeeksLeft}w` : h.form.slice(-3).map((f) => f <= 1 ? "1" : f <= 3 ? "2" : "·").join("")}</span>
                 <span>£${HorseGenerator.calculateValue(h).toLocaleString()}</span>
               </div>
+              <div class="horse-card-actions">
+                <button class="btn btn-primary btn-sm btn-enter-race" data-horse-id="${h.id}" ${h.injured || h.fitness < 30 ? "disabled" : ""}>Enter Race</button>
+              </div>
             </div>
           `).join("")}
         </div>
+        ${auctionHorses.length > 0 ? `
+        <div class="card" style="margin-top:20px">
+          <h3>At Auction</h3>
+          ${auctionHorses.map((h) => `
+            <div class="auction-listing">
+              ${this.horseSVG(h.coat, 36)}
+              <div class="auction-listing-info">
+                <strong>${h.name}</strong> — ${h.age}yo ${h.sex}
+                <span>Guide: £${h.auctionPrice.toLocaleString()} | Current bid: ${h.currentBid > 0 ? `£${h.currentBid.toLocaleString()} (${h.bidderName})` : "No bids yet"} | ${h.auctionWeeksLeft}w left</span>
+              </div>
+            </div>
+          `).join("")}
+        </div>` : ""}
       </div>`;
   }
 
   renderHorseDetail(horse) {
+    const s = this.engine.state;
     const value = HorseGenerator.calculateValue(horse);
     const distLabel = HorseGenerator.getDistanceLabel(horse.distancePreference.ideal);
     const bestGround = Object.entries(horse.groundPreference).sort((a, b) => b[1] - a[1])[0];
@@ -254,11 +317,12 @@ class GameUI {
         <button class="btn btn-secondary btn-back" id="back-to-stable">← Back to Stable</button>
         <div class="card horse-detail-card">
           <div class="horse-detail-header">
-            <div class="horse-color-large" style="background:${horse.coat.color}; border: 3px solid ${horse.coat.mane}"></div>
+            ${this.horseSVG(horse.coat, 80)}
             <div>
               <h2>${horse.name}</h2>
               <p>${horse.age}yo ${horse.coat.name} ${horse.sex} | by <strong>${horse.sire}</strong> out of <strong>${horse.dam}</strong></p>
               <p>Rating: <strong>${horse.rating}</strong> | Value: <strong>£${value.toLocaleString()}</strong></p>
+              <p class="horse-owner-line">${this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 16)} Owner: <strong>${s.stableName}</strong></p>
             </div>
           </div>
           <div class="detail-grid">
@@ -313,7 +377,8 @@ class GameUI {
             </div>
           </div>
           <div class="horse-actions">
-            <button class="btn btn-danger" id="sell-horse-btn" data-id="${horse.id}">Sell Horse (~£${Math.floor(value * 0.8).toLocaleString()})</button>
+            <button class="btn btn-primary" id="enter-race-btn" data-id="${horse.id}" ${horse.injured || horse.fitness < 30 ? "disabled" : ""}>Enter Race</button>
+            <button class="btn btn-danger" id="sell-horse-btn" data-id="${horse.id}">Send to Auction (Guide: ~£${value.toLocaleString()})</button>
           </div>
         </div>
       </div>`;
@@ -321,10 +386,19 @@ class GameUI {
 
   bindStable() {
     document.querySelectorAll(".horse-card").forEach((card) => {
-      card.addEventListener("click", () => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest(".btn-enter-race")) return;
         const id = parseInt(card.dataset.horseId);
         this.selectedHorse = this.engine.state.horses.find((h) => h.id === id);
         this.showView("stable");
+      });
+    });
+    document.querySelectorAll(".btn-enter-race").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.selectedRace = null;
+        this.showView("races");
+        this.showToast("Select a race to enter your horse", "info");
       });
     });
     const backBtn = document.getElementById("back-to-stable");
@@ -340,10 +414,18 @@ class GameUI {
         }
       });
     });
+    const enterRaceBtn = document.getElementById("enter-race-btn");
+    if (enterRaceBtn) {
+      enterRaceBtn.addEventListener("click", () => {
+        this.selectedRace = null;
+        this.showView("races");
+        this.showToast("Select a race to enter your horse", "info");
+      });
+    }
     const sellBtn = document.getElementById("sell-horse-btn");
     if (sellBtn) {
       sellBtn.addEventListener("click", () => {
-        if (confirm(`Sell ${this.selectedHorse.name}?`)) {
+        if (confirm(`Send ${this.selectedHorse.name} to auction? Bidding runs for 2 weeks.`)) {
           const result = this.engine.sellHorse(parseInt(sellBtn.dataset.id));
           this.showToast(result.message, result.success ? "success" : "error");
           this.selectedHorse = null;
@@ -663,17 +745,32 @@ class GameUI {
   // ── Auction ──
   renderAuction() {
     const s = this.engine.state;
+    const playerAuction = s.playerAuctionHorses || [];
     return `
       <div class="auction-view">
         <h2>Horse Auction</h2>
         <p>Balance: £${s.finances.balance.toLocaleString()}</p>
+        ${playerAuction.length > 0 ? `
+        <div class="card" style="border-color:var(--accent);margin-bottom:20px">
+          <h3>Your Horses at Auction</h3>
+          ${playerAuction.map((h) => `
+            <div class="auction-listing">
+              ${this.horseSVG(h.coat, 40)}
+              <div class="auction-listing-info">
+                <strong>${h.name}</strong> — ${h.age}yo ${h.sex} | Guide: £${h.auctionPrice.toLocaleString()}
+                <span>Current bid: ${h.currentBid > 0 ? `£${h.currentBid.toLocaleString()} (${h.bidderName})` : "No bids yet"} | ${h.auctionWeeksLeft} week${h.auctionWeeksLeft !== 1 ? "s" : ""} remaining</span>
+              </div>
+            </div>
+          `).join("")}
+        </div>` : ""}
+        <h3>Horses for Sale</h3>
         <div class="auction-grid">
           ${s.auctionHorses.map((h) => {
             const distLabel = HorseGenerator.getDistanceLabel(h.distancePreference.ideal);
             return `
             <div class="card auction-card">
               <div class="auction-card-header">
-                <div class="horse-color-swatch" style="background:${h.coat.color}; border: 2px solid ${h.coat.mane}"></div>
+                ${this.horseSVG(h.coat, 50)}
                 <div><h3>${h.name}</h3><span>${h.age}yo ${h.coat.name} ${h.sex}</span></div>
               </div>
               <div class="horse-stats-mini">

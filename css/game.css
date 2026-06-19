@@ -843,6 +843,102 @@ body {
   .entry-option { flex-direction: column; align-items: flex-start; }
 }
 
+/* ── Horse Card Actions ── */
+.horse-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 0.75rem;
+}
+
+.btn-enter-race {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Owner / Silks ── */
+.horse-owner-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* ── Silks Picker ── */
+.silks-picker {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.silks-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+}
+
+.silks-colors {
+  display: flex;
+  gap: 16px;
+}
+
+.silks-colors div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.silks-colors label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.silks-colors input[type="color"] {
+  width: 48px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* ── Auction Listing (stable view) ── */
+.auction-listing {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  margin: 6px 0;
+  background: var(--bg-primary);
+  border-radius: 8px;
+}
+
+.auction-listing-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+}
+
+.auction-listing-info span {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+}
+
 /* ── Entry row ── */
 .entry-row {
   display: flex;

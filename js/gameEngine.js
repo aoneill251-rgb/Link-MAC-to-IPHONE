@@ -4,7 +4,7 @@ class GameEngine {
     this.ui = null;
   }
 
-  newGame(stableName, difficulty = "normal") {
+  newGame(stableName, difficulty = "normal", silksColor = "#f59e0b", silksSecondary = "#000000") {
     const diffSettings = {
       easy: { startMoney: 200000, startHorses: 4, startQuality: 50 },
       normal: { startMoney: 100000, startHorses: 3, startQuality: 40 },
@@ -29,6 +29,8 @@ class GameEngine {
     this.state = {
       stableName,
       difficulty,
+      silksColor: silksColor || "#f59e0b",
+      silksSecondary: silksSecondary || "#000000",
       horses,
       jockeys,
       retainedJockeys: [],
@@ -52,6 +54,7 @@ class GameEngine {
       },
       notifications: [],
       auctionHorses: [],
+      playerAuctionHorses: [],
       breedingStallions: [],
       gameOver: false,
       weekLog: [],
@@ -167,6 +170,7 @@ class GameEngine {
       updates.push({ text: "You are deeply in debt! Consider selling horses.", type: "danger" });
     }
 
+    this.processAuctions(updates);
     this.generateWeeklyContent();
     this.state.notifications = updates;
     this.state.weekLog = updates;
@@ -220,12 +224,52 @@ class GameEngine {
     if (idx === -1) return { success: false, message: "Horse not found" };
     const horse = this.state.horses[idx];
     const value = HorseGenerator.calculateValue(horse);
-    const salePrice = Math.floor(value * (0.7 + Math.random() * 0.2));
-    this.state.finances.balance += salePrice;
-    this.state.finances.totalEarnings += salePrice;
+    horse.auctionPrice = value;
+    horse.reservePrice = Math.floor(value * 0.7);
+    horse.owner = "player-auction";
+    horse.auctionWeeksLeft = 2;
+    horse.currentBid = 0;
+    horse.bidderName = null;
+    if (!this.state.playerAuctionHorses) this.state.playerAuctionHorses = [];
+    this.state.playerAuctionHorses.push(horse);
     this.state.horses.splice(idx, 1);
     this.saveGame();
-    return { success: true, message: `${horse.name} sold for £${salePrice.toLocaleString()}!` };
+    return { success: true, message: `${horse.name} sent to auction! Guide price: £${value.toLocaleString()}. Bidding runs for 2 weeks.` };
+  }
+
+  processAuctions(updates) {
+    if (!this.state.playerAuctionHorses) this.state.playerAuctionHorses = [];
+    for (const horse of this.state.playerAuctionHorses) {
+      const value = horse.auctionPrice || HorseGenerator.calculateValue(horse);
+      const interest = Math.random();
+      if (interest > 0.3) {
+        const bidAmount = Math.floor(value * (0.6 + Math.random() * 0.6));
+        if (bidAmount > horse.currentBid) {
+          const bidder = HorseGenerator.pickOwner();
+          horse.currentBid = bidAmount;
+          horse.bidderName = bidder.name;
+        }
+      }
+      horse.auctionWeeksLeft--;
+    }
+    const sold = this.state.playerAuctionHorses.filter((h) => h.auctionWeeksLeft <= 0);
+    for (const horse of sold) {
+      if (horse.currentBid >= horse.reservePrice) {
+        this.state.finances.balance += horse.currentBid;
+        this.state.finances.totalEarnings += horse.currentBid;
+        updates.push({ text: `${horse.name} SOLD at auction to ${horse.bidderName} for £${horse.currentBid.toLocaleString()}!`, type: "success" });
+      } else {
+        horse.owner = "player";
+        horse.auctionPrice = undefined;
+        horse.reservePrice = undefined;
+        horse.currentBid = undefined;
+        horse.bidderName = undefined;
+        horse.auctionWeeksLeft = undefined;
+        this.state.horses.push(horse);
+        updates.push({ text: `${horse.name} failed to sell at auction (reserve not met). Returned to stable.`, type: "warning" });
+      }
+    }
+    this.state.playerAuctionHorses = this.state.playerAuctionHorses.filter((h) => h.auctionWeeksLeft > 0);
   }
 
   retainJockey(jockey) {
