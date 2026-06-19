@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Champion Trainer — Horse Racing Management Simulator</title>
+  <link rel="stylesheet" href="css/game.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏇</text></svg>">
+</head>
+<body>
+  <div class="game-layout">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="top-bar-left">
+        <span class="top-bar-logo">🏇 CHAMPION TRAINER</span>
+        <div class="top-bar-info">
+          <span>Stable: <strong id="top-stable-name">—</strong></span>
+          <span>Balance: <strong id="top-balance">—</strong></span>
+          <span><strong id="top-date">—</strong></span>
+          <span><strong id="top-horses">—</strong></span>
+        </div>
+      </div>
+      <div class="top-bar-right">
+        <button class="btn btn-secondary" id="new-game-menu-btn">New Game</button>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <button class="nav-btn active" data-nav="dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-btn" data-nav="stable">
+        <span class="nav-icon">🐴</span> Stable
+      </button>
+      <button class="nav-btn" data-nav="races">
+        <span class="nav-icon">🏁</span> Races
+      </button>
+      <button class="nav-btn" data-nav="auction">
+        <span class="nav-icon">🔨</span> Auction
+      </button>
+      <button class="nav-btn" data-nav="breeding">
+        <span class="nav-icon">🧬</span> Breeding
+      </button>
+      <button class="nav-btn" data-nav="jockeys">
+        <span class="nav-icon">🏇</span> Jockeys
+      </button>
+      <button class="nav-btn" data-nav="finances">
+        <span class="nav-icon">💰</span> Finances
+      </button>
+      <button class="nav-btn" data-nav="stats">
+        <span class="nav-icon">📈</span> Statistics
+      </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+      <!-- Dynamic content rendered here -->
+    </main>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/horseGen.js"></script>
+  <script src="js/raceEngine.js"></script>
+  <script src="js/gameEngine.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
