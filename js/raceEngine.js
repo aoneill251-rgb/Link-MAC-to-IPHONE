@@ -5,7 +5,8 @@ class RaceEngine {
     const commentary = [];
 
     const runnerStates = runners.map((r) => {
-      const ability = HorseGenerator.getOverallAbility(r.horse, raceDistance, ground);
+      const weight = r.weight || GAME_DATA.rules.baseWeight;
+      const ability = HorseGenerator.getOverallAbility(r.horse, raceDistance, ground, weight);
       const jockeyBonus = r.jockey ? r.jockey.skill * 0.15 : 0;
       const totalAbility = ability + jockeyBonus;
       const temperamentRoll = r.horse.stats.temperament / 100;
@@ -21,6 +22,7 @@ class RaceEngine {
       return {
         horse: r.horse,
         jockey: r.jockey,
+        weight,
         ability: totalAbility,
         position: 0,
         finished: false,
@@ -31,7 +33,6 @@ class RaceEngine {
         staminaFactor: r.horse.stats.stamina / 100,
         accelFactor: r.horse.stats.acceleration / 100,
         luck: 0.95 + Math.random() * 0.1,
-        segments: [],
       };
     });
 
@@ -45,7 +46,7 @@ class RaceEngine {
       for (const rs of runnerStates) {
         if (rs.finished) continue;
 
-        const baseSpeed = rs.ability / numSteps * 3;
+        const baseSpeed = (rs.ability / numSteps) * 3;
         const styleMult = rs.style[phaseFactor];
 
         let fatiguePenalty = 1;
@@ -56,9 +57,7 @@ class RaceEngine {
         }
 
         const accelBoost = phaseFactor === "late" ? 1 + rs.accelFactor * 0.15 : 1;
-
         const tempRoll = rs.temperament > Math.random() ? 1 : 0.92 + Math.random() * 0.05;
-
         const randomness = 0.97 + Math.random() * 0.06;
 
         const speed = baseSpeed * styleMult * fatiguePenalty * accelBoost * tempRoll * randomness * rs.luck;
@@ -79,40 +78,28 @@ class RaceEngine {
 
       if (step === Math.floor(numSteps * 0.02)) {
         const sorted = [...runnerStates].sort((a, b) => b.position - a.position);
-        commentary.push({
-          step,
-          text: `They're off! ${sorted[0].horse.name} breaks quickly from the gates.`,
-        });
+        const jName = sorted[0].jockey ? ` under ${sorted[0].jockey.name}` : "";
+        commentary.push({ step, text: `They're off! ${sorted[0].horse.name}${jName} breaks quickly from the stalls.` });
       }
       if (step === Math.floor(numSteps * 0.25)) {
         const sorted = [...runnerStates].sort((a, b) => b.position - a.position);
-        commentary.push({
-          step,
-          text: `Into the first quarter, ${sorted[0].horse.name} leads from ${sorted[1].horse.name}.`,
-        });
+        commentary.push({ step, text: `Into the first quarter — ${sorted[0].horse.name} leads from ${sorted[1].horse.name} and ${sorted[2]?.horse.name || "the pack"}.` });
       }
       if (step === Math.floor(numSteps * 0.5)) {
         const sorted = [...runnerStates].sort((a, b) => b.position - a.position);
-        commentary.push({
-          step,
-          text: `Halfway now — ${sorted[0].horse.name} still at the head of affairs. The pack is bunching up behind.`,
-        });
+        commentary.push({ step, text: `Halfway now. ${sorted[0].horse.name} still at the head of affairs. The field is tightly bunched behind.` });
       }
       if (step === Math.floor(numSteps * 0.75)) {
         const sorted = [...runnerStates].sort((a, b) => b.position - a.position);
         const gap = sorted[0].position - sorted[1].position;
-        const gapText = gap > 3 ? "clear daylight" : gap > 1 ? "a narrow lead" : "barely a head";
-        commentary.push({
-          step,
-          text: `Turning for home! ${sorted[0].horse.name} has ${gapText} over ${sorted[1].horse.name}. ${sorted[2]?.horse.name || "Others"} making a move!`,
-        });
+        const gapText = gap > 3 ? "clear daylight" : gap > 1 ? "a narrow advantage" : "barely a nose";
+        const j2 = sorted[1].jockey ? `${sorted[1].jockey.name} on ` : "";
+        commentary.push({ step, text: `Turning for home! ${sorted[0].horse.name} has ${gapText}. ${j2}${sorted[1].horse.name} beginning to challenge!` });
       }
       if (step === Math.floor(numSteps * 0.9)) {
         const sorted = [...runnerStates].sort((a, b) => b.position - a.position);
-        commentary.push({
-          step,
-          text: `Inside the final furlong! ${sorted[0].horse.name} and ${sorted[1].horse.name} locked in battle!`,
-        });
+        const j1 = sorted[0].jockey ? `${sorted[0].jockey.name} drives ` : "";
+        commentary.push({ step, text: `Inside the final furlong! ${j1}${sorted[0].horse.name} — ${sorted[1].horse.name} closing fast!` });
       }
     }
 
@@ -122,50 +109,68 @@ class RaceEngine {
       }
     }
 
-    const results = runnerStates
-      .sort((a, b) => a.finishStep - b.finishStep)
-      .map((rs, idx) => {
-        const gap = idx === 0 ? 0 : rs.finishStep - runnerStates[0].finishStep;
-        let gapText = "";
-        if (idx > 0) {
-          if (gap < 0.5) gapText = "short head";
-          else if (gap < 1) gapText = "head";
-          else if (gap < 2) gapText = "neck";
-          else if (gap < 4) gapText = `${Math.floor(gap / 2)} length${gap >= 4 ? "s" : ""}`;
-          else gapText = `${Math.floor(gap / 2)} lengths`;
-        }
-        return {
-          position: idx + 1,
-          horse: rs.horse,
-          jockey: rs.jockey,
-          gap: gapText,
-          finishStep: rs.finishStep,
-        };
-      });
+    const sortedResults = [...runnerStates].sort((a, b) => a.finishStep - b.finishStep);
+    const results = sortedResults.map((rs, idx) => {
+      const gap = idx === 0 ? 0 : rs.finishStep - sortedResults[0].finishStep;
+      let gapText = "";
+      if (idx > 0) {
+        if (gap < 0.5) gapText = "short head";
+        else if (gap < 1) gapText = "head";
+        else if (gap < 2) gapText = "neck";
+        else if (gap < 3) gapText = "half length";
+        else if (gap < 5) gapText = `${Math.max(1, Math.floor(gap / 2))} length${gap >= 4 ? "s" : ""}`;
+        else gapText = `${Math.floor(gap / 2)} lengths`;
+      }
+      return {
+        position: idx + 1,
+        horse: rs.horse,
+        jockey: rs.jockey,
+        weight: rs.weight,
+        gap: gapText,
+        finishStep: rs.finishStep,
+      };
+    });
 
     const winner = results[0];
+    const wJ = winner.jockey ? ` (${winner.jockey.name})` : "";
     commentary.push({
       step: numSteps,
-      text: `🏆 ${winner.horse.name} wins${results[1] ? ` by ${results[1].gap || "a short head"} from ${results[1].horse.name}` : ""}! ${results[2] ? results[2].horse.name + " finishes third." : ""}`,
+      text: `${winner.horse.name}${wJ} wins${results[1] ? ` by ${results[1].gap || "a short head"} from ${results[1].horse.name}` : ""}! ${results[2] ? results[2].horse.name + " finishes third." : ""}`,
     });
 
     return { positions, results, commentary };
   }
 
   static generateRaceCard(gameState) {
-    const { week, month, year } = gameState.calendar;
+    const { week, month } = gameState.calendar;
     const races = [];
-    const numRaces = 3 + Math.floor(Math.random() * 4);
 
     for (const champRace of GAME_DATA.championRaces) {
-      if (champRace.month === month && week === 2) {
+      const champWeek = champRace.week || 2;
+      if (champRace.month === month && champWeek === week) {
         const track = GAME_DATA.tracks.find((t) => t.name === champRace.track);
         races.push(RaceEngine.createChampionshipRace(champRace, track, gameState));
       }
     }
 
+    const isFlatSeason = GAME_DATA.rules.flatSeasonMonths.includes(month);
+    const isNHSeason = GAME_DATA.rules.nhSeasonMonths.includes(month);
+
+    const numRaces = 4 + Math.floor(Math.random() * 4);
+
     for (let i = 0; i < numRaces; i++) {
-      const track = GAME_DATA.tracks[Math.floor(Math.random() * GAME_DATA.tracks.length)];
+      let eligibleTracks = GAME_DATA.tracks.filter((t) => {
+        if (t.surface === "AW") return true;
+        if (t.type === "flat" && isFlatSeason) return true;
+        if (t.type === "nh" && isNHSeason) return true;
+        return false;
+      });
+
+      if (eligibleTracks.length === 0) {
+        eligibleTracks = GAME_DATA.tracks.filter((t) => t.surface === "AW");
+      }
+
+      const track = eligibleTracks[Math.floor(Math.random() * eligibleTracks.length)];
       const distance = track.distances[Math.floor(Math.random() * track.distances.length)];
 
       let classIdx;
@@ -174,21 +179,19 @@ class RaceEngine {
       else classIdx = Math.floor(Math.random() * 4);
 
       const raceClass = GAME_DATA.raceClasses[Math.min(classIdx, GAME_DATA.raceClasses.length - 1)];
-      const ground = GAME_DATA.groundTypes[Math.floor(Math.random() * GAME_DATA.groundTypes.length)];
+      const ground = track.surface === "AW" ? "Standard" : HorseGenerator.getSeasonalGround(month);
 
       const numRunners = 6 + Math.floor(Math.random() * 10);
-      const aiRunners = [];
-      for (let j = 0; j < numRunners; j++) {
-        const quality = raceClass.minRating + Math.floor(Math.random() * (raceClass.maxRating - raceClass.minRating));
-        const horse = HorseGenerator.generateHorse({ quality, owner: "ai" });
-        const jockey = HorseGenerator.generateJockey({ quality: quality * 0.8 });
-        aiRunners.push({ horse, jockey });
-      }
+      const aiRunners = RaceEngine.generateAIRunners(numRunners, raceClass, track.type, distance, ground);
+
+      let sexRestriction = null;
+      if (Math.random() > 0.75) sexRestriction = "fillies";
 
       races.push({
         id: HorseGenerator.nextId++,
         name: RaceEngine.generateRaceName(track, distance, raceClass),
         track: track.name,
+        trackData: track,
         surface: track.surface,
         distance,
         class: raceClass,
@@ -197,30 +200,55 @@ class RaceEngine {
         runners: aiRunners,
         playerEntries: [],
         isChampionship: false,
-        ageRestriction: Math.random() > 0.7 ? 3 : null,
+        ageRestriction: Math.random() > 0.75 ? 3 : null,
+        sexRestriction,
+        type: track.type,
       });
     }
 
     return races;
   }
 
+  static generateAIRunners(count, raceClass, type, distance, ground) {
+    const runners = [];
+    for (let j = 0; j < count; j++) {
+      const quality = raceClass.minRating + Math.floor(Math.random() * (raceClass.maxRating - raceClass.minRating));
+      const horse = HorseGenerator.generateHorse({ quality, owner: "ai" });
+      const realJockey = HorseGenerator.pickRealJockey(type, quality);
+      const jockey = HorseGenerator.createJockeyFromReal(realJockey);
+      const weight = HorseGenerator.calculateWeight(horse, { distance, class: raceClass, isChampionship: false, sexRestriction: null });
+      runners.push({ horse, jockey, weight });
+    }
+    return runners;
+  }
+
   static createChampionshipRace(champRace, track, gameState) {
-    const ground = GAME_DATA.groundTypes[2 + Math.floor(Math.random() * 3)];
-    const numRunners = 10 + Math.floor(Math.random() * 8);
+    const ground = track && track.surface === "Dirt"
+      ? "Fast"
+      : HorseGenerator.getSeasonalGround(champRace.month);
+
+    const maxField = champRace.name === "Grand National" ? GAME_DATA.rules.grandNationalMaxField : GAME_DATA.rules.maxFieldSize;
+    const numRunners = Math.min(maxField, 10 + Math.floor(Math.random() * 10));
+    const isNH = champRace.type === "nh";
     const aiRunners = [];
 
     for (let j = 0; j < numRunners; j++) {
       const quality = 90 + Math.floor(Math.random() * 50);
       const horse = HorseGenerator.generateHorse({ quality, owner: "ai" });
-      const jockey = HorseGenerator.generateJockey({ quality: 60 + Math.floor(Math.random() * 35) });
-      aiRunners.push({ horse, jockey });
+      if (champRace.sexRestriction === "fillies") horse.sex = "Filly";
+      if (champRace.sexRestriction === "colts") horse.sex = "Colt";
+      const realJockey = HorseGenerator.pickRealJockey(isNH ? "nh" : "flat", quality);
+      const jockey = HorseGenerator.createJockeyFromReal(realJockey);
+      const raceForWeight = { distance: champRace.distance, class: GAME_DATA.raceClasses[GAME_DATA.raceClasses.length - 1], isChampionship: true, sexRestriction: champRace.sexRestriction };
+      const weight = HorseGenerator.calculateWeight(horse, raceForWeight);
+      aiRunners.push({ horse, jockey, weight });
     }
 
     return {
       id: HorseGenerator.nextId++,
       name: champRace.name,
       track: champRace.track,
-      surface: champRace.surface || track?.surface || "Turf",
+      surface: track?.surface || "Turf",
       distance: champRace.distance,
       class: GAME_DATA.raceClasses[GAME_DATA.raceClasses.length - 1],
       ground,
@@ -229,38 +257,64 @@ class RaceEngine {
       playerEntries: [],
       isChampionship: true,
       ageRestriction: champRace.ageRestriction,
+      sexRestriction: champRace.sexRestriction || null,
+      type: champRace.type,
+      country: champRace.country,
     };
   }
 
   static generateRaceName(track, distance, raceClass) {
-    const prefixes = ["The", ""];
-    const types = [
-      "Stakes", "Handicap", "Cup", "Trophy", "Plate", "Sprint",
-      "Mile", "Classic", "Challenge", "Prize", "Memorial",
-    ];
-    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const types = raceClass.type === "handicap"
+      ? ["Handicap", "Handicap", "Nursery Handicap", "Heritage Handicap"]
+      : ["Stakes", "Stakes", "Cup", "Trophy", "Plate", "Challenge", "Prize"];
     const type = types[Math.floor(Math.random() * types.length)];
-    return `${prefix} ${track.name} ${HorseGenerator.formatDistance(distance)} ${type}`.trim();
+    return `${track.name} ${HorseGenerator.formatDistance(distance)} ${type}`.trim();
   }
 
-  static canEnterRace(horse, race) {
+  static canEnterRace(horse, race, gameState) {
     if (horse.injured) return { ok: false, reason: "Horse is injured" };
     if (horse.fitness < 30) return { ok: false, reason: "Horse not fit enough (min 30%)" };
     if (horse.health < 50) return { ok: false, reason: "Horse not healthy enough" };
+
     if (race.ageRestriction && horse.age !== race.ageRestriction) {
-      return { ok: false, reason: `Age restricted to ${race.ageRestriction} year olds` };
+      return { ok: false, reason: `Restricted to ${race.ageRestriction} year olds only` };
     }
+
+    if (race.sexRestriction === "fillies" && horse.sex !== "Filly") {
+      return { ok: false, reason: "Fillies/mares only" };
+    }
+    if (race.sexRestriction === "colts" && horse.sex !== "Colt") {
+      return { ok: false, reason: "Colts/geldings only" };
+    }
+
     if (race.class.minRating > 0 && horse.rating < race.class.minRating - 10) {
       return { ok: false, reason: `Rating too low (need ${race.class.minRating}+)` };
     }
     if (horse.rating > race.class.maxRating + 10 && race.class.class > 0) {
-      return { ok: false, reason: `Rating too high for this class` };
+      return { ok: false, reason: "Rating too high for this class" };
     }
+
+    if (gameState) {
+      const totalWeek = gameState.calendar.year * 52 + gameState.calendar.month * 4 + gameState.calendar.week;
+      const lastRan = horse.lastRanWeek || -99;
+      if (totalWeek - lastRan < 1) {
+        return { ok: false, reason: "Must wait at least 1 week between runs" };
+      }
+    }
+
+    if (horse.age < 2) return { ok: false, reason: "Too young to race" };
+
+    if (race.type === "nh" && horse.age < 4) {
+      return { ok: false, reason: "Must be 4+ for National Hunt racing" };
+    }
+
     return { ok: true };
   }
 
   static processRaceResults(results, race, gameState) {
     const updates = [];
+    const prizeDistrib = GAME_DATA.rules.prizeDistribution;
+
     for (const result of results) {
       if (result.horse.owner !== "player") continue;
 
@@ -271,34 +325,35 @@ class RaceEngine {
       horse.form.push(result.position);
       if (horse.form.length > 10) horse.form.shift();
 
+      const totalWeek = gameState.calendar.year * 52 + gameState.calendar.month * 4 + gameState.calendar.week;
+      horse.lastRanWeek = totalWeek;
+
       horse.fitness = Math.max(20, horse.fitness - 10 - Math.floor(Math.random() * 10));
       horse.health = Math.max(60, horse.health - Math.floor(Math.random() * 5));
 
-      let earnings = 0;
+      const prizePct = prizeDistrib[result.position] || 0;
+      let earnings = Math.floor(race.prize * prizePct);
+
       if (result.position === 1) {
         horse.careerStats.wins++;
-        earnings = race.prize;
         horse.morale = Math.min(100, horse.morale + 15);
         horse.rating = Math.min(150, horse.rating + 3 + Math.floor(Math.random() * 3));
-        updates.push({ horse: horse.name, text: `🥇 WON! +£${earnings.toLocaleString()}`, type: "win" });
+        const jockeyBonus = result.jockey ? ` — Jockey: ${result.jockey.name}` : "";
+        updates.push({ horse: horse.name, text: `WON! +£${earnings.toLocaleString()}${jockeyBonus}`, type: "win" });
       } else if (result.position === 2) {
         horse.careerStats.places++;
-        earnings = Math.floor(race.prize * 0.35);
         horse.morale = Math.min(100, horse.morale + 5);
         horse.rating = Math.min(150, horse.rating + 1);
-        updates.push({ horse: horse.name, text: `🥈 2nd place. +£${earnings.toLocaleString()}`, type: "place" });
+        updates.push({ horse: horse.name, text: `2nd place (${result.gap}). +£${earnings.toLocaleString()}`, type: "place" });
       } else if (result.position === 3) {
         horse.careerStats.shows++;
-        earnings = Math.floor(race.prize * 0.15);
         horse.morale = Math.min(100, horse.morale + 2);
-        updates.push({ horse: horse.name, text: `🥉 3rd place. +£${earnings.toLocaleString()}`, type: "show" });
+        updates.push({ horse: horse.name, text: `3rd place (${result.gap}). +£${earnings.toLocaleString()}`, type: "show" });
+      } else if (result.position <= 6 && earnings > 0) {
+        updates.push({ horse: horse.name, text: `Finished ${result.position}${RaceEngine.ordinal(result.position)}. +£${earnings.toLocaleString()}`, type: "loss" });
       } else {
         horse.morale = Math.max(0, horse.morale - 5);
-        if (result.position <= 5) {
-          horse.rating = Math.max(0, horse.rating - 1);
-        } else {
-          horse.rating = Math.max(0, horse.rating - 2);
-        }
+        horse.rating = Math.max(0, horse.rating - (result.position <= 5 ? 1 : 2));
         updates.push({ horse: horse.name, text: `Finished ${result.position}${RaceEngine.ordinal(result.position)}`, type: "loss" });
       }
 
@@ -311,7 +366,7 @@ class RaceEngine {
         horse.injured = true;
         horse.injuryWeeksLeft = weeks;
         horse.training = "rest";
-        updates.push({ horse: horse.name, text: `⚠️ Picked up an injury! Out for ${weeks} weeks.`, type: "injury" });
+        updates.push({ horse: horse.name, text: `Picked up an injury! Out for ${weeks} weeks.`, type: "injury" });
       }
     }
     return updates;

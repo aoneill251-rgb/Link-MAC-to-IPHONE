@@ -2,9 +2,16 @@ class HorseGenerator {
   static nextId = 1;
 
   static generateName() {
-    const first = GAME_DATA.firstNames[Math.floor(Math.random() * GAME_DATA.firstNames.length)];
-    const last = GAME_DATA.lastNames[Math.floor(Math.random() * GAME_DATA.lastNames.length)];
-    return `${first} ${last}`;
+    const names = GAME_DATA.horseNames;
+    return names[Math.floor(Math.random() * names.length)];
+  }
+
+  static generateSireName() {
+    return GAME_DATA.sireNames[Math.floor(Math.random() * GAME_DATA.sireNames.length)];
+  }
+
+  static generateDamName() {
+    return GAME_DATA.damNames[Math.floor(Math.random() * GAME_DATA.damNames.length)];
   }
 
   static pickCoat() {
@@ -38,6 +45,48 @@ class HorseGenerator {
     };
   }
 
+  static pickTrainer(type = "flat") {
+    const trainers = GAME_DATA.realTrainers.filter((t) => t.specialty === type || type === "any");
+    return trainers[Math.floor(Math.random() * trainers.length)];
+  }
+
+  static pickOwner(type = "flat") {
+    const owners = GAME_DATA.realOwners.filter((o) => o.specialty === type || o.specialty === "both");
+    return owners[Math.floor(Math.random() * owners.length)];
+  }
+
+  static pickRealJockey(type = "flat", quality = 50) {
+    const pool = type === "nh" ? GAME_DATA.realJockeys.nh : GAME_DATA.realJockeys.flat;
+    if (quality > 80) {
+      const top = pool.filter((j) => j.skill >= 88);
+      if (top.length > 0) return { ...top[Math.floor(Math.random() * top.length)] };
+    }
+    if (quality > 50) {
+      const mid = pool.filter((j) => j.skill >= 82 && j.skill < 92);
+      if (mid.length > 0) return { ...mid[Math.floor(Math.random() * mid.length)] };
+    }
+    return { ...pool[Math.floor(Math.random() * pool.length)] };
+  }
+
+  static createJockeyFromReal(realJockey) {
+    return {
+      id: HorseGenerator.nextId++,
+      name: realJockey.name,
+      nationality: realJockey.nationality,
+      skill: realJockey.skill,
+      experience: realJockey.experience || HorseGenerator.generateStat(realJockey.skill, 15),
+      fitness: 70 + Math.floor(Math.random() * 30),
+      style: realJockey.style,
+      retainerFee: realJockey.retainerFee,
+      rideFee: realJockey.rideFee,
+      winBonus: realJockey.winBonus,
+      available: true,
+      wins: realJockey.wins,
+      rides: realJockey.rides,
+      nh: realJockey.nh || false,
+    };
+  }
+
   static generateHorse(options = {}) {
     const age = options.age || (2 + Math.floor(Math.random() * 8));
     const quality = options.quality || (20 + Math.floor(Math.random() * 60));
@@ -45,14 +94,21 @@ class HorseGenerator {
     const coat = HorseGenerator.pickCoat();
     const distPref = HorseGenerator.generateDistancePreference();
 
+    const trainer = options.trainer || (options.owner !== "player" ? HorseGenerator.pickTrainer() : null);
+    const aiOwner = options.owner !== "player" && options.owner !== "auction"
+      ? HorseGenerator.pickOwner()
+      : null;
+
     const horse = {
       id: HorseGenerator.nextId++,
       name: options.name || HorseGenerator.generateName(),
       age,
       sex,
       coat,
-      sire: options.sire || HorseGenerator.generateName(),
-      dam: options.dam || HorseGenerator.generateName(),
+      sire: options.sire || HorseGenerator.generateSireName(),
+      dam: options.dam || HorseGenerator.generateDamName(),
+      trainer: trainer ? trainer.name : null,
+      aiOwner: aiOwner ? aiOwner.name : null,
       stats: {
         speed: HorseGenerator.generateStat(quality, 25),
         stamina: HorseGenerator.generateStat(quality, 25),
@@ -73,6 +129,8 @@ class HorseGenerator {
       rating: Math.max(0, quality + Math.floor((Math.random() - 0.5) * 20)),
       potential: quality + Math.floor(Math.random() * 30),
       maturity: age >= 4 ? 0.9 + Math.random() * 0.1 : 0.5 + (age - 2) * 0.15 + Math.random() * 0.1,
+      weight: GAME_DATA.rules.baseWeight,
+      lastRanWeek: -99,
       owner: options.owner || "player",
     };
 
@@ -82,27 +140,6 @@ class HorseGenerator {
     }
 
     return horse;
-  }
-
-  static generateJockey(options = {}) {
-    const first = GAME_DATA.jockeyFirstNames[Math.floor(Math.random() * GAME_DATA.jockeyFirstNames.length)];
-    const last = GAME_DATA.jockeySurnames[Math.floor(Math.random() * GAME_DATA.jockeySurnames.length)];
-    const quality = options.quality || (30 + Math.floor(Math.random() * 50));
-
-    return {
-      id: HorseGenerator.nextId++,
-      name: `${first} ${last}`,
-      skill: HorseGenerator.generateStat(quality, 20),
-      experience: HorseGenerator.generateStat(quality, 30),
-      fitness: 70 + Math.floor(Math.random() * 30),
-      style: ["front-runner", "stalker", "closer", "versatile"][Math.floor(Math.random() * 4)],
-      retainerFee: Math.floor(quality * 50 + Math.random() * 500),
-      rideFee: Math.floor(100 + quality * 5),
-      winBonus: Math.floor(quality * 20),
-      available: true,
-      wins: Math.floor(Math.random() * quality * 2),
-      rides: Math.floor(quality * 3 + Math.random() * 100),
-    };
   }
 
   static calculateValue(horse) {
@@ -129,6 +166,7 @@ class HorseGenerator {
       sire: sire.name,
       dam: dam.name,
       quality: Math.floor((sire.potential + dam.potential) / 2),
+      owner: "player",
     });
 
     foal.stats.speed = inheritStat(sire.stats.speed, dam.stats.speed);
@@ -140,6 +178,7 @@ class HorseGenerator {
     foal.fitness = 30;
     foal.maturity = 0.2;
     foal.rating = 0;
+    foal.trainer = null;
 
     foal.stats.speed = Math.floor(foal.stats.speed * 0.4);
     foal.stats.stamina = Math.floor(foal.stats.stamina * 0.4);
@@ -158,13 +197,48 @@ class HorseGenerator {
     return horse.groundPreference[ground] || 0.7;
   }
 
-  static getOverallAbility(horse, distance, ground) {
+  static calculateWeight(horse, race) {
+    let weight = GAME_DATA.rules.baseWeight;
+
+    if (race.class.type === "pattern" || race.isChampionship) {
+      const ageKey = horse.age >= 5 ? "5+" : String(horse.age);
+      const closestDist = Object.keys(GAME_DATA.rules.weightForAge)
+        .map(Number)
+        .sort((a, b) => Math.abs(a - race.distance) - Math.abs(b - race.distance))[0];
+      const wfa = GAME_DATA.rules.weightForAge[closestDist];
+      if (wfa && wfa[ageKey] !== null && wfa[ageKey] !== undefined) {
+        weight += wfa[ageKey];
+      }
+      if (race.sexRestriction === null && horse.sex === "Filly") {
+        weight -= GAME_DATA.rules.fillySexAllowance;
+      }
+    } else {
+      const ratingDiff = horse.rating - (race.class.maxRating + race.class.minRating) / 2;
+      weight += Math.floor(ratingDiff * 0.3);
+      if (horse.careerStats.wins > 0 && race.class.type === "handicap") {
+        weight += GAME_DATA.rules.winPenalty;
+      }
+      if (horse.sex === "Filly") {
+        weight -= GAME_DATA.rules.fillySexAllowance;
+      }
+    }
+
+    return Math.max(GAME_DATA.rules.minWeight, Math.min(GAME_DATA.rules.maxWeight, weight));
+  }
+
+  static getWeightEffect(weight) {
+    const diff = weight - GAME_DATA.rules.baseWeight;
+    return 1 - diff * 0.003;
+  }
+
+  static getOverallAbility(horse, distance, ground, weight) {
     const distFit = HorseGenerator.getDistanceFitness(horse, distance);
     const groundFit = HorseGenerator.getGroundFitness(horse, ground);
     const fitnessFactor = horse.fitness / 100;
     const moraleFactor = 0.8 + (horse.morale / 100) * 0.2;
     const healthFactor = horse.health / 100;
     const maturityFactor = horse.maturity;
+    const weightEffect = weight ? HorseGenerator.getWeightEffect(weight) : 1;
 
     const rawAbility =
       horse.stats.speed * 0.35 +
@@ -172,7 +246,7 @@ class HorseGenerator {
       horse.stats.acceleration * 0.2 +
       horse.stats.temperament * 0.2;
 
-    return rawAbility * distFit * groundFit * fitnessFactor * moraleFactor * healthFactor * maturityFactor;
+    return rawAbility * distFit * groundFit * fitnessFactor * moraleFactor * healthFactor * maturityFactor * weightEffect;
   }
 
   static getDistanceLabel(meters) {
@@ -190,5 +264,21 @@ class HorseGenerator {
     if (miles === 0) return `${remFurlongs}f`;
     if (remFurlongs === 0) return `${miles}m`;
     return `${miles}m ${remFurlongs}f`;
+  }
+
+  static formatWeight(lbs) {
+    const stones = Math.floor(lbs / 14);
+    const remainLbs = lbs % 14;
+    return `${stones}st ${remainLbs}lb`;
+  }
+
+  static getSeasonalGround(month) {
+    const probs = GAME_DATA.seasonalGround[month];
+    let r = Math.random();
+    for (let i = 0; i < probs.length; i++) {
+      r -= probs[i];
+      if (r <= 0) return GAME_DATA.groundTypes[i];
+    }
+    return "Good";
   }
 }

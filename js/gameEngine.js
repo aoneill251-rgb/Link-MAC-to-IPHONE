@@ -24,10 +24,7 @@ class GameEngine {
       );
     }
 
-    const jockeys = [];
-    for (let i = 0; i < 3; i++) {
-      jockeys.push(HorseGenerator.generateJockey({ quality: 30 + Math.floor(Math.random() * 30) }));
-    }
+    const jockeys = this.generateJockeyPool();
 
     this.state = {
       stableName,
@@ -62,6 +59,12 @@ class GameEngine {
 
     this.generateWeeklyContent();
     return this.state;
+  }
+
+  generateJockeyPool() {
+    const allFlat = GAME_DATA.realJockeys.flat.map((j) => HorseGenerator.createJockeyFromReal(j));
+    const allNH = GAME_DATA.realJockeys.nh.map((j) => HorseGenerator.createJockeyFromReal(j));
+    return [...allFlat, ...allNH];
   }
 
   generateWeeklyContent() {
@@ -161,7 +164,7 @@ class GameEngine {
     }
 
     if (this.state.finances.balance < -50000) {
-      updates.push({ text: "⚠️ You are deeply in debt! Consider selling horses.", type: "danger" });
+      updates.push({ text: "You are deeply in debt! Consider selling horses.", type: "danger" });
     }
 
     this.generateWeeklyContent();
@@ -175,12 +178,13 @@ class GameEngine {
   processYearEnd(updates) {
     for (const horse of this.state.horses) {
       horse.age++;
-      if (horse.age > 12) {
-        updates.push({ text: `${horse.name} (age ${horse.age}) is getting old. Consider retirement.`, type: "warning" });
+      const retireAge = horse.stats.jumping > 40 ? GAME_DATA.rules.retirementAgeNH : GAME_DATA.rules.retirementAgeFlat;
+      if (horse.age > retireAge) {
+        updates.push({ text: `${horse.name} (age ${horse.age}) should be retired.`, type: "warning" });
       }
     }
     const wins = this.state.stats.totalWins;
-    updates.push({ text: `Year ${this.state.calendar.year - 1} complete! Total wins: ${wins}`, type: "info" });
+    updates.push({ text: `Year ${this.state.calendar.year - 1} complete! Total career wins: ${wins}`, type: "info" });
   }
 
   calculateWeeklyExpenses() {
@@ -203,6 +207,8 @@ class GameEngine {
     this.state.finances.totalExpenses += price;
     horse.owner = "player";
     horse.training = "light";
+    horse.trainer = null;
+    horse.aiOwner = null;
     this.state.horses.push(horse);
     this.state.auctionHorses = this.state.auctionHorses.filter((h) => h.id !== horse.id);
     this.saveGame();
@@ -230,11 +236,16 @@ class GameEngine {
       return { success: false, message: "Already retained" };
     }
     this.state.retainedJockeys.push(jockey);
+    this.state.jockeys = this.state.jockeys.filter((j) => j.id !== jockey.id);
     this.saveGame();
-    return { success: true, message: `${jockey.name} retained!` };
+    return { success: true, message: `${jockey.name} retained! (£${jockey.retainerFee.toLocaleString()}/week)` };
   }
 
   releaseJockey(jockeyId) {
+    const jockey = this.state.retainedJockeys.find((j) => j.id === jockeyId);
+    if (jockey) {
+      this.state.jockeys.push(jockey);
+    }
     this.state.retainedJockeys = this.state.retainedJockeys.filter((j) => j.id !== jockeyId);
     this.saveGame();
     return { success: true };
@@ -243,6 +254,10 @@ class GameEngine {
   breedHorse(dam, stallion) {
     if (dam.sex !== "Filly") return { success: false, message: "Only fillies/mares can breed" };
     if (dam.age < 4) return { success: false, message: "Too young to breed (min 4)" };
+    const currentMonth = this.state.calendar.month;
+    if (!GAME_DATA.rules.breedingSeason.includes(currentMonth)) {
+      return { success: false, message: `Breeding season is February-June only (currently ${GAME_DATA.months[currentMonth]})` };
+    }
     const fee = stallion.studFee || 5000;
     if (this.state.finances.balance < fee) return { success: false, message: "Can't afford stud fee" };
     if (this.state.horses.length >= 20) return { success: false, message: "Stable full!" };
@@ -255,7 +270,7 @@ class GameEngine {
     foal.age = 1;
     this.state.horses.push(foal);
     this.saveGame();
-    return { success: true, message: `A new foal is born: ${foal.name}!`, foal };
+    return { success: true, message: `A new foal is born: ${foal.name}! (by ${stallion.name} out of ${dam.name})`, foal };
   }
 
   enterRace(raceId, horseId, jockeyId) {
@@ -263,7 +278,7 @@ class GameEngine {
     const horse = this.state.horses.find((h) => h.id === horseId);
     if (!race || !horse) return { success: false, message: "Race or horse not found" };
 
-    const check = RaceEngine.canEnterRace(horse, race);
+    const check = RaceEngine.canEnterRace(horse, race, this.state);
     if (!check.ok) return { success: false, message: check.reason };
 
     if (race.playerEntries.find((e) => e.horse.id === horseId)) {
@@ -274,12 +289,16 @@ class GameEngine {
       ? this.state.retainedJockeys.find((j) => j.id === jockeyId) || this.state.jockeys.find((j) => j.id === jockeyId)
       : this.state.jockeys[Math.floor(Math.random() * this.state.jockeys.length)];
 
+    const weight = HorseGenerator.calculateWeight(horse, race);
     const entryFee = Math.floor(race.prize * 0.02);
     this.state.finances.balance -= entryFee;
 
-    race.playerEntries.push({ horse, jockey });
+    race.playerEntries.push({ horse, jockey, weight });
     this.saveGame();
-    return { success: true, message: `${horse.name} entered with ${jockey?.name || "freelance jockey"}. Entry fee: £${entryFee.toLocaleString()}` };
+    return {
+      success: true,
+      message: `${horse.name} entered with ${jockey?.name || "freelance jockey"} (${HorseGenerator.formatWeight(weight)}). Entry fee: £${entryFee.toLocaleString()}`,
+    };
   }
 
   runRace(raceId) {
@@ -312,7 +331,13 @@ class GameEngine {
       raceName: race.name,
       track: race.track,
       date: `${GAME_DATA.months[this.state.calendar.month]} ${this.state.calendar.year}`,
-      top3: result.results.slice(0, 3).map((r) => ({ name: r.horse.name, jockey: r.jockey?.name })),
+      top3: result.results.slice(0, 3).map((r) => ({
+        name: r.horse.name,
+        jockey: r.jockey?.name,
+        trainer: r.horse.trainer,
+        owner: r.horse.aiOwner || (r.horse.owner === "player" ? this.state.stableName : ""),
+        weight: r.weight,
+      })),
     });
 
     if (this.state.raceResults.length > 50) {
