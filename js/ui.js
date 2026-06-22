@@ -44,6 +44,8 @@ class GameUI {
       case "auction": main.innerHTML = this.renderAuction(); this.bindAuction(); break;
       case "breeding": main.innerHTML = this.renderBreeding(); this.bindBreeding(); break;
       case "jockeys": main.innerHTML = this.renderJockeys(); this.bindJockeys(); break;
+      case "betting": main.innerHTML = this.renderBetting(); this.bindBetting(); break;
+      case "owners": main.innerHTML = this.renderOwners(); this.bindOwners(); break;
       case "finances": main.innerHTML = this.renderFinances(); break;
       case "stats": main.innerHTML = this.renderStats(); break;
     }
@@ -132,6 +134,12 @@ class GameUI {
             </div>
           </div>
           <div class="form-group">
+            <label>Base Country</label>
+            <select id="base-country-select" class="form-select">
+              ${GAME_DATA.countries.map((c) => `<option value="${c.code}" ${c.code === "GB" ? "selected" : ""}>${c.flag} ${c.name}</option>`).join("")}
+            </select>
+          </div>
+          <div class="form-group">
             <label>Racing Silks</label>
             <div class="silks-picker">
               <div class="silks-preview" id="silks-preview"></div>
@@ -170,6 +178,9 @@ class GameUI {
       const silksColor = primaryInput ? primaryInput.value : "#f59e0b";
       const silksSecondary = secondaryInput ? secondaryInput.value : "#000000";
       this.engine.newGame(name, diff, silksColor, silksSecondary);
+      const countrySelect = document.getElementById("base-country-select");
+      if (countrySelect) this.engine.state.baseCountry = countrySelect.value;
+      this.engine.saveGame();
       this.showView("dashboard");
       this.showToast("Welcome to Champion Trainer! Good luck!", "success");
     });
@@ -192,12 +203,13 @@ class GameUI {
     const seasonText = isFlatSeason && isNHSeason ? "Flat & NH Season" : isFlatSeason ? "Flat Season" : isNHSeason ? "NH Season" : "AW Only";
     const flatHorses = s.horses.filter((h) => h.type !== "nh");
     const nhHorses = s.horses.filter((h) => h.type === "nh");
+    const baseCountry = GAME_DATA.countries.find((c) => c.code === (s.baseCountry || "GB")) || GAME_DATA.countries[0];
 
     return `
       <div class="dashboard">
         <div class="dash-header">
           <div>
-            <h2>${s.stableName}</h2>
+            <h2>${baseCountry.flag} ${s.stableName}</h2>
             <span class="season-badge">${seasonText}</span>
           </div>
           <button class="btn btn-primary btn-advance" id="advance-week-btn">Advance Week</button>
@@ -244,7 +256,8 @@ class GameUI {
             <h3>This Week</h3>
             <div class="stat-row"><span>Races</span><span class="stat-val">${s.currentRaces.length}</span></div>
             <div class="stat-row"><span>Entered</span><span class="stat-val">${s.currentRaces.filter((r) => r.playerEntries.length > 0).length}</span></div>
-            <div class="stat-row"><span>Retained Jockeys</span><span class="stat-val">${s.retainedJockeys.length}</span></div>
+            <div class="stat-row"><span>Active Bets</span><span class="stat-val">${(s.activeBets || []).length + (s.antePostBets || []).length}</span></div>
+            <div class="stat-row"><span>Patron Horses</span><span class="stat-val">${s.horses.filter((h) => h.patronOwner).length}</span></div>
           </div>
         </div>
 
@@ -271,8 +284,8 @@ class GameUI {
   renderStable() {
     const s = this.engine.state;
     if (this.selectedHorse) return this.renderHorseDetail(this.selectedHorse);
-    const view = s.stableView || "flat";
-    const horses = s.horses.filter((h) => (h.type || "flat") === view);
+    const view = s.stableView || "all";
+    const horses = view === "all" ? s.horses : s.horses.filter((h) => (h.type || "flat") === view);
     const auctionHorses = s.playerAuctionHorses || [];
     const flatCount = s.horses.filter((h) => (h.type || "flat") === "flat").length;
     const nhCount = s.horses.filter((h) => h.type === "nh").length;
@@ -282,11 +295,14 @@ class GameUI {
         <div class="stable-header">
           <h2>Your Stable (${s.horses.length}/20)</h2>
           <div class="stable-toggle">
+            <button class="toggle-btn ${view === "all" ? "active" : ""}" data-stable-view="all">
+              All <span class="toggle-count">${s.horses.length}</span>
+            </button>
             <button class="toggle-btn ${view === "flat" ? "active" : ""}" data-stable-view="flat">
               Flat <span class="toggle-count">${flatCount}</span>
             </button>
             <button class="toggle-btn ${view === "nh" ? "active" : ""}" data-stable-view="nh">
-              National Hunt <span class="toggle-count">${nhCount}</span>
+              NH <span class="toggle-count">${nhCount}</span>
             </button>
           </div>
         </div>
@@ -299,7 +315,9 @@ class GameUI {
                 <div>
                   <h3>${h.name}</h3>
                   <span class="horse-subtitle">${h.age}yo ${h.coat.name} ${h.sex}</span>
-                  <span class="horse-owner-line">${this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 14)} ${s.stableName}</span>
+                  <span class="horse-owner-line">${h.patronOwner
+                    ? this.silksSVG(h.patronSilksColor || "#888", h.patronSilksSecondary || "#000", 14) + " " + h.patronOwner
+                    : this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 14) + " " + s.stableName}</span>
                 </div>
                 <div class="horse-rating">R${h.rating}</div>
               </div>
@@ -352,7 +370,9 @@ class GameUI {
               <h2>${horse.name} ${this.typeBadge(horse.type || "flat")}</h2>
               <p>${horse.age}yo ${horse.coat.name} ${horse.sex} | by <strong>${horse.sire}</strong> out of <strong>${horse.dam}</strong></p>
               <p>Rating: <strong>${horse.rating}</strong> | Value: <strong>£${value.toLocaleString()}</strong></p>
-              <p class="horse-owner-line">${this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 16)} Owner: <strong>${s.stableName}</strong></p>
+              <p class="horse-owner-line">${horse.patronOwner
+                ? this.silksSVG(horse.patronSilksColor || "#888", horse.patronSilksSecondary || "#000", 16) + " Owner: <strong>" + horse.patronOwner + "</strong> (Trained by you)"
+                : this.silksSVG(s.silksColor || "#f59e0b", s.silksSecondary || "#000", 16) + " Owner: <strong>" + s.stableName + "</strong>"}</p>
             </div>
           </div>
           <div class="detail-grid">
@@ -959,6 +979,17 @@ class GameUI {
           ${result.updates.map((u) => `<div class="notif notif-${u.type}"><strong>${u.horse}:</strong> ${u.text}</div>`).join("")}
         </div>` : ""}
 
+        ${result.settledBets && result.settledBets.length > 0 ? `
+        <div class="card">
+          <h3>Settled Bets</h3>
+          ${result.settledBets.map((b) => `
+            <div class="notif ${b.won ? "notif-win" : "notif-loss"}">
+              <strong>${b.type.toUpperCase()}</strong> ${b.horseName} @ ${b.odds.fractional} — £${b.stake} stake
+              ${b.won ? `— WON £${(b.winnings || 0).toLocaleString()}!` : "— Lost"}
+            </div>
+          `).join("")}
+        </div>` : ""}
+
         <div class="race-result-actions">
           <button class="btn btn-primary" id="results-to-races">Back to Races</button>
           <button class="btn btn-secondary" id="results-to-dash">Dashboard</button>
@@ -1185,6 +1216,503 @@ class GameUI {
         this.showView("jockeys");
       });
     });
+  }
+
+  // ── Betting (Phone / Bookies App) ──
+  renderBetting() {
+    const s = this.engine.state;
+    const bettingBalance = s.bettingBalance || 0;
+    const activeBets = s.activeBets || [];
+    const antePostBets = s.antePostBets || [];
+    const betHistory = (s.betHistory || []).slice(-20).reverse();
+    const races = s.currentRaces || [];
+    const upcomingChamps = GAME_DATA.championRaces.filter((cr) => {
+      const monthDiff = cr.month - s.calendar.month;
+      return monthDiff > 0 && monthDiff <= 3;
+    }).slice(0, 8);
+
+    return `
+      <div class="betting-view">
+        <div class="phone-frame">
+          <div class="phone-notch"></div>
+          <div class="phone-header">
+            <span class="phone-app-icon">🏇</span>
+            <span class="phone-app-name">ChampBet</span>
+            <span class="phone-balance">£${bettingBalance.toLocaleString()}</span>
+          </div>
+          <div class="phone-tabs">
+            <button class="phone-tab active" data-bet-tab="raceday">Race Day</button>
+            <button class="phone-tab" data-bet-tab="antepost">Ante-Post</button>
+            <button class="phone-tab" data-bet-tab="mybets">My Bets</button>
+            <button class="phone-tab" data-bet-tab="history">History</button>
+          </div>
+          <div class="phone-content">
+            <!-- Race Day Tab -->
+            <div class="bet-tab-content" id="bet-tab-raceday">
+              <div class="bet-section-label">TODAY'S RACES</div>
+              ${races.length === 0 ? `<div class="bet-empty">No races available this week</div>` : ""}
+              ${races.map((r) => {
+                const allRunners = [...r.runners, ...r.playerEntries];
+                const odds = this.engine.generateOdds(allRunners, r.distance, r.ground);
+                return `
+                <div class="bet-race-card" data-race-id="${r.id}">
+                  <div class="bet-race-header">
+                    <div>
+                      <strong>${r.isChampionship ? this.flag(r.country) + " " : ""}${r.name}</strong>
+                      <span>${r.track} | ${HorseGenerator.formatDistance(r.distance)} | ${r.ground}</span>
+                    </div>
+                    <span class="bet-prize">£${r.prize.toLocaleString()}</span>
+                  </div>
+                  <div class="bet-runners">
+                    ${allRunners.map((runner, i) => {
+                      const isPlayer = runner.horse.owner === "player" || runner.horse.owner === "patron";
+                      return `
+                      <div class="bet-runner ${isPlayer ? "bet-runner-player" : ""}">
+                        <span class="bet-runner-num">${i + 1}</span>
+                        <span class="bet-runner-silk" style="background:${runner.horse.coat.color}"></span>
+                        <span class="bet-runner-name">${runner.horse.name}</span>
+                        <span class="bet-runner-jockey">${runner.jockey?.name || "—"}</span>
+                        <div class="bet-odds-btns">
+                          <button class="bet-odds-btn" data-race-id="${r.id}" data-horse-id="${runner.horse.id}" data-horse-name="${runner.horse.name}" data-odds-dec="${odds[i].decimal}" data-odds-frac="${odds[i].fractional}" data-bet-type="win">${odds[i].fractional}</button>
+                        </div>
+                      </div>`;
+                    }).join("")}
+                  </div>
+                </div>`;
+              }).join("")}
+            </div>
+
+            <!-- Ante-Post Tab -->
+            <div class="bet-tab-content" id="bet-tab-antepost" style="display:none">
+              <div class="bet-section-label">ANTE-POST MARKETS</div>
+              <p class="bet-info-text">Bet on upcoming championship races at enhanced odds. Higher risk — non-runner, no refund.</p>
+              ${upcomingChamps.length === 0 ? `<div class="bet-empty">No upcoming championship races</div>` : ""}
+              ${upcomingChamps.map((cr) => {
+                const baseOdds = 3 + Math.random() * 20;
+                const runners = [];
+                for (let i = 0; i < 6; i++) {
+                  const q = 80 + Math.floor(Math.random() * 40);
+                  const name = GAME_DATA.horseNames[Math.floor(Math.random() * GAME_DATA.horseNames.length)];
+                  const odd = parseFloat((baseOdds * (0.5 + i * 0.4 + Math.random() * 0.5)).toFixed(1));
+                  runners.push({ name, odds: odd, fractional: `${Math.round(odd - 1)}/1` });
+                }
+                const playerHorses = s.horses.filter((h) => {
+                  if (cr.type === "nh" && h.type === "flat") return false;
+                  if (cr.type === "flat" && h.type === "nh") return false;
+                  if (cr.ageRestriction && h.age !== cr.ageRestriction) return false;
+                  if (cr.sexRestriction === "fillies" && h.sex !== "Filly") return false;
+                  return true;
+                });
+                playerHorses.forEach((h) => {
+                  const playerOdd = parseFloat((baseOdds * (0.8 + Math.random() * 1.5)).toFixed(1));
+                  runners.push({ name: h.name, odds: playerOdd, fractional: `${Math.round(playerOdd - 1)}/1`, isPlayer: true, horseId: h.id });
+                });
+                runners.sort((a, b) => a.odds - b.odds);
+
+                return `
+                <div class="bet-antepost-card">
+                  <div class="bet-race-header">
+                    <div>
+                      <strong>${this.flag(cr.country)} ${cr.name}</strong>
+                      <span>${cr.track} | ${HorseGenerator.formatDistance(cr.distance)} | ${GAME_DATA.months[cr.month]}</span>
+                    </div>
+                    <span class="bet-prize">£${cr.prize.toLocaleString()}</span>
+                  </div>
+                  <div class="bet-runners">
+                    ${runners.map((r) => `
+                      <div class="bet-runner ${r.isPlayer ? "bet-runner-player" : ""}">
+                        <span class="bet-runner-name">${r.name}</span>
+                        <div class="bet-odds-btns">
+                          <button class="bet-odds-btn bet-antepost-btn" data-race-name="${cr.name}" data-horse-name="${r.name}" data-odds-dec="${r.odds}" data-odds-frac="${r.fractional}" ${r.isPlayer ? `data-horse-id="${r.horseId}"` : ""}>${r.fractional}</button>
+                        </div>
+                      </div>
+                    `).join("")}
+                  </div>
+                </div>`;
+              }).join("")}
+            </div>
+
+            <!-- My Bets Tab -->
+            <div class="bet-tab-content" id="bet-tab-mybets" style="display:none">
+              <div class="bet-section-label">ACTIVE BETS</div>
+              ${activeBets.length === 0 && antePostBets.length === 0 ? `<div class="bet-empty">No active bets</div>` : ""}
+              ${activeBets.map((b) => `
+                <div class="bet-slip-card">
+                  <div class="bet-slip-type">${b.type.toUpperCase()}</div>
+                  <div class="bet-slip-info">
+                    <strong>${b.horseName}</strong>
+                    <span>${b.raceName || "Race"} | ${b.odds.fractional}</span>
+                  </div>
+                  <div class="bet-slip-stake">£${b.stake}</div>
+                  <div class="bet-slip-return">Pot. return: £${Math.floor(b.stake * b.odds.decimal).toLocaleString()}</div>
+                </div>
+              `).join("")}
+              ${antePostBets.length > 0 ? `<div class="bet-section-label" style="margin-top:12px">ANTE-POST</div>` : ""}
+              ${antePostBets.map((b) => `
+                <div class="bet-slip-card bet-slip-antepost">
+                  <div class="bet-slip-type">A/P ${b.type.toUpperCase()}</div>
+                  <div class="bet-slip-info">
+                    <strong>${b.horseName}</strong>
+                    <span>${b.raceName} | ${b.odds.fractional}</span>
+                  </div>
+                  <div class="bet-slip-stake">£${b.stake}</div>
+                  <div class="bet-slip-return">Pot. return: £${Math.floor(b.stake * b.odds.decimal).toLocaleString()}</div>
+                </div>
+              `).join("")}
+            </div>
+
+            <!-- History Tab -->
+            <div class="bet-tab-content" id="bet-tab-history" style="display:none">
+              <div class="bet-section-label">BET HISTORY</div>
+              ${betHistory.length === 0 ? `<div class="bet-empty">No settled bets yet</div>` : ""}
+              ${betHistory.map((b) => `
+                <div class="bet-slip-card ${b.won ? "bet-won" : "bet-lost"}">
+                  <div class="bet-slip-type">${b.type.toUpperCase()}</div>
+                  <div class="bet-slip-info">
+                    <strong>${b.horseName}</strong>
+                    <span>${b.raceName || "Race"} | ${b.odds.fractional}</span>
+                  </div>
+                  <div class="bet-slip-stake">£${b.stake}</div>
+                  <div class="bet-slip-result">${b.won ? `WON £${(b.winnings || 0).toLocaleString()}` : "LOST"}</div>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- Bet Slip (popup) -->
+          <div class="bet-slip-popup" id="bet-slip-popup" style="display:none">
+            <div class="bet-slip-popup-header">
+              <h4>Place Bet</h4>
+              <button class="bet-slip-close" id="bet-slip-close">&times;</button>
+            </div>
+            <div class="bet-slip-popup-body">
+              <div class="bet-slip-selection" id="bet-slip-selection"></div>
+              <div class="bet-slip-controls">
+                <div class="bet-type-picker">
+                  <button class="bet-type-btn active" data-type="win">Win</button>
+                  <button class="bet-type-btn" data-type="place">Place</button>
+                  <button class="bet-type-btn" data-type="eachway">E/W</button>
+                </div>
+                <div class="bet-stake-row">
+                  <label>Stake</label>
+                  <div class="bet-stake-btns">
+                    <button class="bet-quick-stake" data-amount="5">£5</button>
+                    <button class="bet-quick-stake" data-amount="10">£10</button>
+                    <button class="bet-quick-stake" data-amount="25">£25</button>
+                    <button class="bet-quick-stake" data-amount="50">£50</button>
+                    <button class="bet-quick-stake" data-amount="100">£100</button>
+                  </div>
+                  <input type="number" id="bet-stake-input" min="1" max="10000" value="10" class="bet-stake-input" />
+                </div>
+                <div class="bet-potential-return" id="bet-potential-return">Potential return: £—</div>
+                <button class="btn btn-primary btn-large" id="confirm-bet-btn">Place Bet</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="betting-sidebar">
+          <div class="card">
+            <h3>Betting Account</h3>
+            <div class="big-number">£${bettingBalance.toLocaleString()}</div>
+            <div class="stat-row"><span>Active Bets</span><span>${activeBets.length + antePostBets.length}</span></div>
+            <div class="stat-row"><span>Total Settled</span><span>${(s.betHistory || []).length}</span></div>
+            <div class="stat-row"><span>Winners</span><span>${(s.betHistory || []).filter((b) => b.won).length}</span></div>
+            <div class="betting-deposit-row">
+              <button class="btn btn-secondary btn-sm" id="deposit-btn" data-amount="1000">Deposit £1,000</button>
+              <button class="btn btn-secondary btn-sm" id="withdraw-btn" data-amount="1000" ${bettingBalance < 1000 ? "disabled" : ""}>Withdraw £1,000</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  bindBetting() {
+    this.currentBetData = null;
+
+    document.querySelectorAll(".phone-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".phone-tab").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        document.querySelectorAll(".bet-tab-content").forEach((c) => c.style.display = "none");
+        const target = document.getElementById(`bet-tab-${tab.dataset.betTab}`);
+        if (target) target.style.display = "block";
+      });
+    });
+
+    document.querySelectorAll(".bet-odds-btn:not(.bet-antepost-btn)").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.currentBetData = {
+          raceId: parseInt(btn.dataset.raceId),
+          horseId: parseInt(btn.dataset.horseId),
+          horseName: btn.dataset.horseName,
+          odds: { decimal: parseFloat(btn.dataset.oddsDec), fractional: btn.dataset.oddsFrac },
+          antePost: false,
+        };
+        this.showBetSlip();
+      });
+    });
+
+    document.querySelectorAll(".bet-antepost-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this.currentBetData = {
+          raceName: btn.dataset.raceName,
+          horseName: btn.dataset.horseName,
+          horseId: btn.dataset.horseId ? parseInt(btn.dataset.horseId) : null,
+          odds: { decimal: parseFloat(btn.dataset.oddsDec), fractional: btn.dataset.oddsFrac },
+          antePost: true,
+        };
+        this.showBetSlip();
+      });
+    });
+
+    const closeBtn = document.getElementById("bet-slip-close");
+    if (closeBtn) closeBtn.addEventListener("click", () => {
+      document.getElementById("bet-slip-popup").style.display = "none";
+    });
+
+    document.querySelectorAll(".bet-type-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".bet-type-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        if (this.currentBetData) this.currentBetData.type = btn.dataset.type;
+        this.updateBetReturn();
+      });
+    });
+
+    document.querySelectorAll(".bet-quick-stake").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const input = document.getElementById("bet-stake-input");
+        if (input) input.value = btn.dataset.amount;
+        this.updateBetReturn();
+      });
+    });
+
+    const stakeInput = document.getElementById("bet-stake-input");
+    if (stakeInput) stakeInput.addEventListener("input", () => this.updateBetReturn());
+
+    const confirmBtn = document.getElementById("confirm-bet-btn");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", () => {
+        if (!this.currentBetData) return;
+        const stake = parseInt(document.getElementById("bet-stake-input").value) || 0;
+        const activeType = document.querySelector(".bet-type-btn.active");
+        const type = activeType ? activeType.dataset.type : "win";
+        const race = this.currentBetData.raceId
+          ? this.engine.state.currentRaces.find((r) => r.id === this.currentBetData.raceId)
+          : null;
+
+        const bet = {
+          ...this.currentBetData,
+          type,
+          stake,
+          raceName: this.currentBetData.raceName || (race ? race.name : "Race"),
+        };
+
+        const result = this.engine.placeBet(bet);
+        this.showToast(result.message, result.success ? "success" : "error");
+        if (result.success) {
+          document.getElementById("bet-slip-popup").style.display = "none";
+          this.showView("betting");
+        }
+      });
+    }
+
+    const depositBtn = document.getElementById("deposit-btn");
+    if (depositBtn) {
+      depositBtn.addEventListener("click", () => {
+        const amount = parseInt(depositBtn.dataset.amount);
+        if (this.engine.state.finances.balance < amount) {
+          this.showToast("Insufficient stable funds", "error");
+          return;
+        }
+        this.engine.state.finances.balance -= amount;
+        this.engine.state.bettingBalance = (this.engine.state.bettingBalance || 0) + amount;
+        this.engine.saveGame();
+        this.showToast(`Deposited £${amount.toLocaleString()} to betting account`, "success");
+        this.showView("betting");
+      });
+    }
+
+    const withdrawBtn = document.getElementById("withdraw-btn");
+    if (withdrawBtn) {
+      withdrawBtn.addEventListener("click", () => {
+        const amount = parseInt(withdrawBtn.dataset.amount);
+        if ((this.engine.state.bettingBalance || 0) < amount) {
+          this.showToast("Insufficient betting funds", "error");
+          return;
+        }
+        this.engine.state.bettingBalance -= amount;
+        this.engine.state.finances.balance += amount;
+        this.engine.saveGame();
+        this.showToast(`Withdrew £${amount.toLocaleString()} to stable account`, "success");
+        this.showView("betting");
+      });
+    }
+  }
+
+  showBetSlip() {
+    const popup = document.getElementById("bet-slip-popup");
+    const selection = document.getElementById("bet-slip-selection");
+    if (!popup || !selection || !this.currentBetData) return;
+
+    selection.innerHTML = `
+      <strong>${this.currentBetData.horseName}</strong>
+      <span>${this.currentBetData.raceName || "Race"} | ${this.currentBetData.odds.fractional}</span>
+    `;
+
+    document.querySelectorAll(".bet-type-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelector('.bet-type-btn[data-type="win"]')?.classList.add("active");
+    this.currentBetData.type = "win";
+
+    popup.style.display = "block";
+    this.updateBetReturn();
+  }
+
+  updateBetReturn() {
+    const returnDiv = document.getElementById("bet-potential-return");
+    const stakeInput = document.getElementById("bet-stake-input");
+    if (!returnDiv || !stakeInput || !this.currentBetData) return;
+    const stake = parseInt(stakeInput.value) || 0;
+    const odds = this.currentBetData.odds.decimal;
+    const activeType = document.querySelector(".bet-type-btn.active");
+    const type = activeType ? activeType.dataset.type : "win";
+    let potReturn = 0;
+    if (type === "win") potReturn = stake * odds;
+    else if (type === "place") potReturn = stake * (1 + (odds - 1) / 4);
+    else if (type === "eachway") potReturn = (stake / 2) * odds + (stake / 2) * (1 + (odds - 1) / 4);
+    returnDiv.textContent = `Potential return: £${Math.floor(potReturn).toLocaleString()}`;
+  }
+
+  // ── Owners / Patronage ──
+  renderOwners() {
+    const s = this.engine.state;
+    const patronHorses = s.horses.filter((h) => h.patronOwner);
+    const baseCountry = GAME_DATA.countries.find((c) => c.code === (s.baseCountry || "GB")) || GAME_DATA.countries[0];
+    const reputation = s.patronageReputation || 0;
+    const winRate = s.stats.totalRaces > 0 ? (s.stats.totalWins / s.stats.totalRaces * 100).toFixed(1) : "0.0";
+
+    const internationalRaces = this.engine.getInternationalRaces();
+    const localRaces = this.engine.getLocalRaces();
+    const nextIntl = internationalRaces.filter((cr) => {
+      if (cr.month > s.calendar.month) return true;
+      if (cr.month === s.calendar.month && (cr.week || 2) > s.calendar.week) return true;
+      return false;
+    }).slice(0, 12);
+
+    return `
+      <div class="owners-view">
+        <div class="owners-header">
+          <h2>Owners & International</h2>
+          <div class="base-country-display">
+            <span>Base: ${baseCountry.flag} ${baseCountry.name}</span>
+            <select id="change-country-select" class="form-select-sm">
+              ${GAME_DATA.countries.map((c) => `<option value="${c.code}" ${c.code === baseCountry.code ? "selected" : ""}>${c.flag} ${c.name}</option>`).join("")}
+            </select>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card dash-card">
+            <h3>Trainer Reputation</h3>
+            <div class="big-number">${reputation}</div>
+            <div class="stat-row"><span>Win Rate</span><span>${winRate}%</span></div>
+            <div class="stat-row"><span>Group Wins</span><span>${s.stats.groupWins}</span></div>
+            <div class="stat-row"><span>Champ. Wins</span><span>${s.stats.champWins}</span></div>
+          </div>
+          <div class="card dash-card">
+            <h3>Patron Horses</h3>
+            <div class="big-number">${patronHorses.length}/${GAME_DATA.patronageThresholds.maxPatronHorses}</div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:4px">Owners send horses to your stable based on your performance. They run in the owner's silks.</p>
+          </div>
+        </div>
+
+        ${patronHorses.length > 0 ? `
+        <div class="card">
+          <h3>Horses from Owners</h3>
+          <div class="horse-grid">
+            ${patronHorses.map((h) => `
+              <div class="patron-horse-card">
+                <div class="patron-horse-header">
+                  ${this.horseSVG(h.coat, 40)}
+                  <div>
+                    <strong>${h.name}</strong> ${this.typeBadge(h.type || "flat")}
+                    <span>${h.age}yo ${h.sex} | R${h.rating}</span>
+                    <span class="horse-owner-line">${this.silksSVG(h.patronSilksColor || "#888", h.patronSilksSecondary || "#000", 14)} ${h.patronOwner}</span>
+                  </div>
+                </div>
+                <div class="horse-stats-mini">
+                  <div class="stat-bar-group"><label>SPD</label><div class="stat-bar"><div class="stat-fill speed" style="width:${h.stats.speed}%"></div></div><span class="stat-num">${h.stats.speed}</span></div>
+                  <div class="stat-bar-group"><label>STA</label><div class="stat-bar"><div class="stat-fill stamina" style="width:${h.stats.stamina}%"></div></div><span class="stat-num">${h.stats.stamina}</span></div>
+                </div>
+                <div class="horse-card-footer">
+                  <span>Fit: ${h.fitness}%</span>
+                  <span>${h.form.slice(-3).map((f) => f <= 1 ? "1" : f <= 3 ? "2" : "·").join("")}</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </div>` : `
+        <div class="card">
+          <h3>No Patron Horses Yet</h3>
+          <p style="color:var(--text-secondary)">Keep winning races and building your reputation. Owners will notice and send horses to your stable for training.</p>
+          <div class="patron-requirements">
+            <div class="stat-row"><span>Win Rate needed</span><span>${(GAME_DATA.patronageThresholds.minWinRate * 100)}%+</span></div>
+            <div class="stat-row"><span>Your Win Rate</span><span class="${parseFloat(winRate) >= GAME_DATA.patronageThresholds.minWinRate * 100 ? "text-success" : ""}">${winRate}%</span></div>
+            <div class="stat-row"><span>Group Wins needed</span><span>${GAME_DATA.patronageThresholds.minGroupWins}+</span></div>
+            <div class="stat-row"><span>Your Group Wins</span><span class="${s.stats.groupWins >= GAME_DATA.patronageThresholds.minGroupWins ? "text-success" : ""}">${s.stats.groupWins}</span></div>
+          </div>
+        </div>`}
+
+        <div class="card">
+          <h3>International Campaigns ${baseCountry.flag}</h3>
+          <p style="color:var(--text-secondary);font-size:0.82rem;margin-bottom:10px">Big races abroad you can target. Enter these when they appear on the race card.</p>
+          <div class="intl-races-grid">
+            ${nextIntl.map((cr) => {
+              const countryData = GAME_DATA.countries.find((c) => c.code === cr.country);
+              return `
+              <div class="intl-race-item">
+                <div class="intl-race-flag">${countryData ? countryData.flag : ""}</div>
+                <div class="intl-race-info">
+                  <strong>${cr.name}</strong>
+                  <span>${cr.track} | ${HorseGenerator.formatDistance(cr.distance)} | ${GAME_DATA.months[cr.month]}</span>
+                  <span class="intl-prize">£${cr.prize.toLocaleString()}</span>
+                </div>
+                <span class="type-badge type-${cr.type}">${cr.type === "nh" ? "NH" : "Flat"}</span>
+              </div>`;
+            }).join("")}
+            ${nextIntl.length === 0 ? `<div class="bet-empty">No upcoming international races in the next 3 months</div>` : ""}
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Home Fixtures</h3>
+          <div class="intl-races-grid">
+            ${localRaces.filter((cr) => cr.month >= s.calendar.month).slice(0, 8).map((cr) => `
+              <div class="intl-race-item intl-home">
+                <div class="intl-race-info">
+                  <strong>${cr.name}</strong>
+                  <span>${cr.track} | ${HorseGenerator.formatDistance(cr.distance)} | ${GAME_DATA.months[cr.month]}</span>
+                  <span class="intl-prize">£${cr.prize.toLocaleString()}</span>
+                </div>
+                <span class="type-badge type-${cr.type}">${cr.type === "nh" ? "NH" : "Flat"}</span>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  bindOwners() {
+    const countrySelect = document.getElementById("change-country-select");
+    if (countrySelect) {
+      countrySelect.addEventListener("change", () => {
+        this.engine.state.baseCountry = countrySelect.value;
+        this.engine.saveGame();
+        this.showView("owners");
+        this.showToast(`Base country changed to ${GAME_DATA.countries.find((c) => c.code === countrySelect.value)?.name}`, "success");
+      });
+    }
   }
 
   // ── Finances ──

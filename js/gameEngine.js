@@ -45,6 +45,7 @@ class GameEngine {
       difficulty,
       silksColor: silksColor || "#f59e0b",
       silksSecondary: silksSecondary || "#000000",
+      baseCountry: "GB",
       horses,
       jockeys,
       retainedJockeys: [],
@@ -57,7 +58,7 @@ class GameEngine {
       },
       currentRaces: [],
       raceResults: [],
-      stableView: "flat",
+      stableView: "all",
       achievements: [],
       stats: {
         totalWins: 0,
@@ -71,6 +72,13 @@ class GameEngine {
       auctionHorses: [],
       playerAuctionHorses: [],
       breedingStallions: [],
+      patronHorses: [],
+      patronageReputation: 0,
+      bets: [],
+      activeBets: [],
+      betHistory: [],
+      antePostBets: [],
+      bettingBalance: 5000,
       gameOver: false,
       weekLog: [],
     };
@@ -186,6 +194,12 @@ class GameEngine {
     }
 
     this.processAuctions(updates);
+
+    const totalWeek = this.state.calendar.year * 52 + this.state.calendar.month * 4 + this.state.calendar.week;
+    if (totalWeek % (GAME_DATA.patronageThresholds.checkInterval || 4) === 0) {
+      this.checkPatronage(updates);
+    }
+
     this.generateWeeklyContent();
     this.state.notifications = updates;
     this.state.weekLog = updates;
@@ -250,6 +264,195 @@ class GameEngine {
     this.state.horses.splice(idx, 1);
     this.saveGame();
     return { success: true, message: `${horse.name} sent to auction! Guide price: £${value.toLocaleString()}. Bidding runs for 2 weeks.` };
+  }
+
+  // ── Owner Patronage System ──
+  checkPatronage(updates) {
+    const thresholds = GAME_DATA.patronageThresholds;
+    const totalRaces = this.state.stats.totalRaces;
+    const winRate = totalRaces > 0 ? this.state.stats.totalWins / totalRaces : 0;
+    const patronCount = (this.state.patronHorses || []).length;
+
+    if (patronCount >= thresholds.maxPatronHorses) return;
+    if (winRate < thresholds.minWinRate && this.state.stats.totalWins < thresholds.minTotalWins) return;
+    if (this.state.stats.groupWins < thresholds.minGroupWins && winRate < 0.2) return;
+
+    const chance = Math.min(0.4, winRate * 0.5 + this.state.stats.groupWins * 0.05);
+    if (Math.random() > chance) return;
+
+    const eligibleOwners = GAME_DATA.realOwners.filter((o) =>
+      !(this.state.patronHorses || []).find((ph) => ph.patronOwner === o.name)
+    );
+    if (eligibleOwners.length === 0) return;
+
+    const owner = eligibleOwners[Math.floor(Math.random() * eligibleOwners.length)];
+    const type = owner.specialty === "nh" ? "nh" : owner.specialty === "flat" ? "flat" : (Math.random() > 0.5 ? "flat" : "nh");
+    const quality = 50 + Math.floor(Math.random() * 40);
+    const horse = HorseGenerator.generateHorse({ quality, type, owner: "patron" });
+    horse.patronOwner = owner.name;
+    horse.patronSilksColor = owner.silksColor;
+    horse.patronSilksSecondary = owner.silksSecondary;
+    horse.training = "light";
+    horse.trainer = this.state.stableName;
+
+    if (!this.state.patronHorses) this.state.patronHorses = [];
+    this.state.patronHorses.push(horse);
+    this.state.horses.push(horse);
+    this.state.patronageReputation = (this.state.patronageReputation || 0) + 1;
+
+    updates.push({
+      text: `${owner.name} has sent ${horse.name} (${type.toUpperCase()}, R${horse.rating}) to your stable! Running in their silks.`,
+      type: "success",
+    });
+  }
+
+  // ── Betting System ──
+  generateOdds(runners, raceDistance, ground) {
+    const abilities = runners.map((r) => {
+      const ability = HorseGenerator.getOverallAbility(r.horse, raceDistance, ground, r.weight || 126);
+      const jockeyBonus = r.jockey ? r.jockey.skill * 0.1 : 0;
+      return ability + jockeyBonus + Math.random() * 5;
+    });
+
+    const maxAbility = Math.max(...abilities);
+    const odds = abilities.map((a) => {
+      const raw = maxAbility / a;
+      const margin = 1.15 + Math.random() * 0.1;
+      return Math.max(1.1, raw * margin * (1 + Math.random() * 0.3));
+    });
+
+    return odds.map((o) => {
+      if (o < 2) return { decimal: parseFloat(o.toFixed(2)), fractional: `${Math.round((o - 1) * 4)}/4` };
+      if (o < 3) return { decimal: parseFloat(o.toFixed(2)), fractional: `${Math.round(o - 1)}/1` };
+      if (o < 10) return { decimal: parseFloat(o.toFixed(1)), fractional: `${Math.round(o - 1)}/1` };
+      return { decimal: parseFloat(o.toFixed(1)), fractional: `${Math.round(o - 1)}/1` };
+    });
+  }
+
+  placeBet(bet) {
+    if (!this.state.bettingBalance) this.state.bettingBalance = 5000;
+    if (bet.stake > this.state.bettingBalance) {
+      return { success: false, message: "Insufficient betting funds" };
+    }
+    if (bet.stake < 1) return { success: false, message: "Minimum bet is £1" };
+
+    this.state.bettingBalance -= bet.stake;
+    bet.id = HorseGenerator.nextId++;
+    bet.placed = `Week ${this.state.calendar.week}, ${GAME_DATA.months[this.state.calendar.month]} ${this.state.calendar.year}`;
+    bet.settled = false;
+
+    if (bet.antePost) {
+      if (!this.state.antePostBets) this.state.antePostBets = [];
+      this.state.antePostBets.push(bet);
+    } else {
+      if (!this.state.activeBets) this.state.activeBets = [];
+      this.state.activeBets.push(bet);
+    }
+
+    this.saveGame();
+    return { success: true, message: `Bet placed: £${bet.stake} ${bet.type} on ${bet.horseName} at ${bet.odds.fractional}` };
+  }
+
+  settleBets(raceId, results) {
+    if (!this.state.activeBets) return [];
+    const settled = [];
+    const raceBets = this.state.activeBets.filter((b) => b.raceId === raceId);
+
+    for (const bet of raceBets) {
+      bet.settled = true;
+      const horseResult = results.find((r) => r.horse.id === bet.horseId);
+      if (!horseResult) { bet.won = false; settled.push(bet); continue; }
+
+      let winnings = 0;
+      const position = horseResult.position;
+
+      if (bet.type === "win") {
+        if (position === 1) {
+          winnings = bet.stake * bet.odds.decimal;
+          bet.won = true;
+        }
+      } else if (bet.type === "place") {
+        if (position <= 3) {
+          winnings = bet.stake * (1 + (bet.odds.decimal - 1) / 4);
+          bet.won = true;
+        }
+      } else if (bet.type === "eachway") {
+        const halfStake = bet.stake / 2;
+        if (position === 1) {
+          winnings = halfStake * bet.odds.decimal + halfStake * (1 + (bet.odds.decimal - 1) / 4);
+          bet.won = true;
+        } else if (position <= 3) {
+          winnings = halfStake * (1 + (bet.odds.decimal - 1) / 4);
+          bet.won = true;
+        }
+      } else if (bet.type === "forecast") {
+        if (position === 1 && bet.secondHorseId) {
+          const second = results.find((r) => r.horse.id === bet.secondHorseId);
+          if (second && second.position === 2) {
+            winnings = bet.stake * bet.odds.decimal * 3;
+            bet.won = true;
+          }
+        }
+      } else if (bet.type === "tricast") {
+        if (position === 1 && bet.secondHorseId && bet.thirdHorseId) {
+          const second = results.find((r) => r.horse.id === bet.secondHorseId);
+          const third = results.find((r) => r.horse.id === bet.thirdHorseId);
+          if (second && second.position === 2 && third && third.position === 3) {
+            winnings = bet.stake * bet.odds.decimal * 8;
+            bet.won = true;
+          }
+        }
+      }
+
+      bet.winnings = Math.floor(winnings);
+      if (!bet.won) bet.won = false;
+      if (bet.winnings > 0) this.state.bettingBalance += bet.winnings;
+      settled.push(bet);
+    }
+
+    this.state.activeBets = this.state.activeBets.filter((b) => !b.settled);
+    if (!this.state.betHistory) this.state.betHistory = [];
+    this.state.betHistory.push(...settled);
+    if (this.state.betHistory.length > 100) this.state.betHistory = this.state.betHistory.slice(-100);
+
+    this.saveGame();
+    return settled;
+  }
+
+  settleAntePostBets(raceName, results) {
+    if (!this.state.antePostBets) return [];
+    const settled = [];
+    const matching = this.state.antePostBets.filter((b) => b.raceName === raceName);
+
+    for (const bet of matching) {
+      bet.settled = true;
+      const winner = results[0];
+      if (winner && winner.horse.name === bet.horseName) {
+        bet.won = true;
+        bet.winnings = Math.floor(bet.stake * bet.odds.decimal);
+        this.state.bettingBalance += bet.winnings;
+      } else {
+        bet.won = false;
+        bet.winnings = 0;
+      }
+      settled.push(bet);
+    }
+
+    this.state.antePostBets = this.state.antePostBets.filter((b) => !b.settled);
+    if (!this.state.betHistory) this.state.betHistory = [];
+    this.state.betHistory.push(...settled);
+    this.saveGame();
+    return settled;
+  }
+
+  getInternationalRaces() {
+    const base = this.state.baseCountry || "GB";
+    return GAME_DATA.championRaces.filter((r) => r.country !== base);
+  }
+
+  getLocalRaces() {
+    const base = this.state.baseCountry || "GB";
+    return GAME_DATA.championRaces.filter((r) => r.country === base);
   }
 
   processAuctions(updates) {
@@ -383,6 +586,12 @@ class GameEngine {
         }
       }
     }
+
+    const settledBets = this.settleBets(raceId, result.results);
+    if (race.isChampionship) {
+      this.settleAntePostBets(race.name, result.results);
+    }
+    result.settledBets = settledBets;
 
     result.race = race;
     result.updates = updates;

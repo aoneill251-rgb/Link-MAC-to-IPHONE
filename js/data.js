@@ -475,4 +475,35 @@ const GAME_DATA = {
     stableUpkeep: 500,
     jockeyRetainer: 200,
   },
+
+  // ── COUNTRIES ──
+  countries: [
+    { code: "GB", name: "Great Britain", flag: "\u{1F1EC}\u{1F1E7}" },
+    { code: "IE", name: "Ireland", flag: "\u{1F1EE}\u{1F1EA}" },
+    { code: "FR", name: "France", flag: "\u{1F1EB}\u{1F1F7}" },
+    { code: "US", name: "United States", flag: "\u{1F1FA}\u{1F1F8}" },
+    { code: "AU", name: "Australia", flag: "\u{1F1E6}\u{1F1FA}" },
+    { code: "JP", name: "Japan", flag: "\u{1F1EF}\u{1F1F5}" },
+    { code: "HK", name: "Hong Kong", flag: "\u{1F1ED}\u{1F1F0}" },
+    { code: "UAE", name: "United Arab Emirates", flag: "\u{1F1E6}\u{1F1EA}" },
+  ],
+
+  // ── BETTING ──
+  betTypes: [
+    { id: "win", name: "Win", description: "Horse must finish 1st", payout: 1.0 },
+    { id: "place", name: "Place", description: "Horse must finish in top 3", payout: 0.25 },
+    { id: "eachway", name: "Each-Way", description: "Win + Place (half stakes each)", payout: 0.5 },
+    { id: "forecast", name: "Forecast", description: "Pick 1st and 2nd in exact order", payout: 3.0 },
+    { id: "tricast", name: "Tricast", description: "Pick 1st, 2nd, 3rd in exact order", payout: 8.0 },
+    { id: "accumulator", name: "Accumulator", description: "Multiple selections, all must win", payout: 1.0 },
+  ],
+
+  // ── OWNER PATRONAGE ──
+  patronageThresholds: {
+    minWinRate: 0.15,
+    minGroupWins: 2,
+    minTotalWins: 5,
+    maxPatronHorses: 4,
+    checkInterval: 4,
+  },
 };
