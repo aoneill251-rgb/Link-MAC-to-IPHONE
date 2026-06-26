@@ -4,7 +4,8 @@
   "description": "Scrapes sectional timing data from RacingTV for Curragh races",
   "main": "scrape.js",
   "scripts": {
-    "scrape": "node scrape.js",
+    "scrape": "node scrape.js && node parse.js",
+    "parse": "node parse.js",
     "install-browser": "npx playwright install chromium"
   },
   "dependencies": {
