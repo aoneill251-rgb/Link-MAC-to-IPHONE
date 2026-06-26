@@ -1,8 +1,8 @@
 /**
  * Curragh Sectional Data Scraper
  *
- * Scrapes sectional timing data from RacingTV for all Curragh races.
- * Outputs JSON + CSV to the ./output/ directory.
+ * Scrapes RACEiQ Comparison + Sectional timing data from RacingTV
+ * for all Curragh races.
  *
  * Usage:
  *   npm install
@@ -24,303 +24,162 @@ const OUTPUT_DIR = path.join(__dirname, 'output');
 const HEADLESS = process.env.HEADLESS !== 'false';
 const MAX_RACES = process.env.MAX_RACES ? parseInt(process.env.MAX_RACES) : Infinity;
 
-async function delay(ms) {
+function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function launchBrowser() {
-  return chromium.launch({
-    headless: HEADLESS,
-    args: ['--no-sandbox', '--disable-setuid-sandbox']
-  });
-}
-
-async function acceptCookies(page) {
+async function dismissCookies(page) {
   try {
-    const cookieBtn = page.locator('button:has-text("Accept"), button:has-text("accept"), button:has-text("OK"), button:has-text("Agree"), [id*="cookie"] button, [class*="cookie"] button, [class*="consent"] button');
-    const first = cookieBtn.first();
-    if (await first.isVisible({ timeout: 3000 })) {
-      await first.click();
-      await delay(1000);
-      console.log('  [cookies] Dismissed cookie banner');
+    const btn = page.locator('button:has-text("Accept"), button:has-text("OK"), button:has-text("Agree"), [class*="cookie"] button, [class*="consent"] button').first();
+    if (await btn.isVisible({ timeout: 2000 })) {
+      await btn.click();
+      await delay(500);
     }
-  } catch {
-    // No cookie banner
-  }
+  } catch {}
 }
 
-async function getRaceMeetingLinks(page) {
+async function collectFullResultLinks(page) {
+  console.log('  Loading Curragh results page...');
   await page.goto(RESULTS_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await delay(3000);
-  await acceptCookies(page);
+  await dismissCookies(page);
 
-  // Scroll down to trigger lazy-loading
-  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await delay(2000);
+  // Scroll to load all content
+  for (let i = 0; i < 5; i++) {
+    await page.evaluate(() => window.scrollBy(0, 800));
+    await delay(500);
+  }
 
-  // Take a screenshot for debugging
-  await page.screenshot({ path: path.join(OUTPUT_DIR, 'step1_results_page.png'), fullPage: true });
+  await page.screenshot({ path: path.join(OUTPUT_DIR, 'results_page.png'), fullPage: true });
 
-  // Grab all visible text to understand page structure
-  const pageText = await page.evaluate(() => document.body.innerText);
-  fs.writeFileSync(path.join(OUTPUT_DIR, 'step1_page_text.txt'), pageText);
-
-  // Look for race meeting date links / cards that lead to individual race days
+  // Find all "Full Result" links
   const links = await page.evaluate((base) => {
     const results = [];
-    const anchors = document.querySelectorAll('a[href]');
+    const anchors = document.querySelectorAll('a');
     for (const a of anchors) {
-      const href = a.getAttribute('href');
-      const text = a.textContent.trim().replace(/\s+/g, ' ');
-      if (!href) continue;
-      const fullHref = href.startsWith('http') ? href : base + href;
-
-      // Match patterns like /results/2025-06-28/curragh or /racecourses/ie/curragh/results/...
-      if (
-        (href.includes('curragh') && href.includes('result')) ||
-        (href.includes('/results/') && href.includes('curragh')) ||
-        (href.match(/\/results\/\d{4}-\d{2}-\d{2}/) && href.toLowerCase().includes('curragh'))
-      ) {
-        results.push({ href: fullHref, text: text.substring(0, 120) });
+      const text = a.textContent.trim();
+      if (text.includes('Full Result')) {
+        const href = a.getAttribute('href');
+        if (href) {
+          const fullHref = href.startsWith('http') ? href : base + href;
+          // Get the race summary text from the parent/sibling elements
+          const parent = a.closest('div, li, section, article') || a.parentElement;
+          const contextText = parent ? parent.textContent.trim().replace(/\s+/g, ' ').substring(0, 200) : '';
+          results.push({ href: fullHref, context: contextText });
+        }
       }
     }
     return results;
   }, BASE_URL);
 
-  // Also look for links that just contain date patterns on the results page
-  const dateLinks = await page.evaluate((base) => {
-    const results = [];
-    const anchors = document.querySelectorAll('a[href]');
-    for (const a of anchors) {
-      const href = a.getAttribute('href');
-      const text = a.textContent.trim().replace(/\s+/g, ' ');
-      if (!href) continue;
-      const fullHref = href.startsWith('http') ? href : base + href;
-      if (href.match(/\/\d{4}-\d{2}-\d{2}/)) {
-        results.push({ href: fullHref, text: text.substring(0, 120) });
-      }
-    }
-    return results;
-  }, BASE_URL);
-
-  // Combine and deduplicate
-  const allLinks = [...links, ...dateLinks];
+  // Deduplicate
   const seen = new Set();
-  const unique = allLinks.filter(l => {
+  const unique = links.filter(l => {
     if (seen.has(l.href)) return false;
     seen.add(l.href);
     return true;
   });
 
-  console.log(`\n  Found ${unique.length} meeting/date links`);
-  unique.forEach(l => console.log(`    ${l.text} -> ${l.href}`));
-
+  console.log(`  Found ${unique.length} "Full Result" links`);
   return unique;
 }
 
-async function getRaceLinksFromMeeting(page, meetingUrl) {
-  await page.goto(meetingUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await delay(3000);
-  await acceptCookies(page);
-
-  const links = await page.evaluate((base) => {
-    const results = [];
-    const anchors = document.querySelectorAll('a[href]');
-    for (const a of anchors) {
-      const href = a.getAttribute('href');
-      const text = a.textContent.trim().replace(/\s+/g, ' ');
-      if (!href) continue;
-      const fullHref = href.startsWith('http') ? href : base + href;
-      // Individual race result links
-      if (
-        href.includes('/full-result') ||
-        href.includes('/result/') ||
-        (href.match(/\/race\/\d+/) && !href.includes('#'))
-      ) {
-        results.push({ href: fullHref, text: text.substring(0, 120) });
-      }
-    }
-    return results;
-  }, BASE_URL);
-
-  const seen = new Set();
-  return links.filter(l => {
-    if (seen.has(l.href)) return false;
-    seen.add(l.href);
-    return true;
-  });
-}
-
-async function getIndividualRaceLinks(page) {
-  // Sometimes the results page directly lists individual races rather than meetings
-  await page.goto(RESULTS_URL, { waitUntil: 'domcontentloaded', timeout: 30000 });
-  await delay(3000);
-  await acceptCookies(page);
-
-  const links = await page.evaluate((base) => {
-    const results = [];
-    const anchors = document.querySelectorAll('a[href]');
-    for (const a of anchors) {
-      const href = a.getAttribute('href');
-      const text = a.textContent.trim().replace(/\s+/g, ' ');
-      if (!href) continue;
-      const fullHref = href.startsWith('http') ? href : base + href;
-      if (href.includes('full-result') || href.includes('/result/')) {
-        results.push({ href: fullHref, text: text.substring(0, 120) });
-      }
-    }
-    return results;
-  }, BASE_URL);
-
-  return links;
-}
-
-async function clickFullResult(page) {
-  // Look for "Full Result" button/link/tab on the race page
-  const selectors = [
-    'a:has-text("Full Result")',
-    'button:has-text("Full Result")',
-    'a:has-text("full result")',
-    '[data-tab="full-result"]',
-    '.tab:has-text("Full Result")',
-    'a:has-text("Result")',
-  ];
-
-  for (const sel of selectors) {
-    try {
-      const el = page.locator(sel).first();
-      if (await el.isVisible({ timeout: 2000 })) {
-        await el.click();
-        await delay(2000);
-        console.log('    [nav] Clicked Full Result');
-        return true;
-      }
-    } catch {}
-  }
-  console.log('    [nav] No Full Result button found (may already be on result page)');
-  return false;
-}
-
-async function clickSectionals(page) {
-  // Look for "Sectionals" button/tab
-  const selectors = [
-    'a:has-text("Sectionals")',
-    'button:has-text("Sectionals")',
-    'a:has-text("sectionals")',
-    '[data-tab="sectionals"]',
-    '.tab:has-text("Sectionals")',
-    'a:has-text("Sectional")',
-    'button:has-text("Sectional")',
-  ];
-
-  for (const sel of selectors) {
-    try {
-      const el = page.locator(sel).first();
-      if (await el.isVisible({ timeout: 2000 })) {
-        await el.click();
-        await delay(2000);
-        console.log('    [nav] Clicked Sectionals tab');
-        return true;
-      }
-    } catch {}
-  }
-  console.log('    [warn] No Sectionals tab found for this race');
-  return false;
-}
-
-async function extractRaceMetadata(page) {
+async function extractRaceHeader(page) {
   return page.evaluate(() => {
-    const getText = (sel) => {
-      const el = document.querySelector(sel);
-      return el ? el.textContent.trim() : '';
-    };
+    const info = {};
 
-    // Try various common selectors for race info
-    const title = document.title;
-    const h1 = getText('h1');
-    const h2 = getText('h2');
-
-    // Look for race details in structured elements
-    const raceInfo = {};
-    raceInfo.pageTitle = title;
-    raceInfo.heading = h1 || h2;
-
-    // Try to find race name, time, distance, class, etc.
-    const detailSelectors = [
-      '.race-header', '.race-title', '.race-name', '.race-info',
-      '.racecard-header', '[class*="race-detail"]', '[class*="raceInfo"]',
-      '.event-header', '.event-title'
-    ];
-    for (const sel of detailSelectors) {
-      const el = document.querySelector(sel);
-      if (el) {
-        raceInfo.details = el.textContent.trim().replace(/\s+/g, ' ');
+    // Race time + course (e.g. "16:40 CURRAGH")
+    const headings = document.querySelectorAll('h1, h2, h3, [class*="race-header"], [class*="raceHeader"]');
+    for (const h of headings) {
+      const text = h.textContent.trim();
+      if (text.includes('CURRAGH') || text.includes('Curragh')) {
+        info.raceTitle = text.replace(/\s+/g, ' ');
         break;
       }
     }
+    if (!info.raceTitle) {
+      const h1 = document.querySelector('h1');
+      if (h1) info.raceTitle = h1.textContent.trim().replace(/\s+/g, ' ');
+    }
 
-    // Try to extract structured fields
-    const allText = document.body.innerText;
-    const distanceMatch = allText.match(/(\d+[mf]\s*\d*[yf]?|\d+\s*(miles?|furlongs?))/i);
-    if (distanceMatch) raceInfo.distance = distanceMatch[0];
+    // Race name (e.g. "Sky Bet Extra Places Handicap")
+    // Look for italicized or linked race name
+    const raceNameEl = document.querySelector('h2, h3, [class*="raceName"], [class*="race-name"]');
+    if (raceNameEl) info.raceName = raceNameEl.textContent.trim().replace(/\s+/g, ' ');
 
-    const timeMatch = allText.match(/(\d{1,2}[:.]\d{2})\s*(am|pm)?/i);
-    if (timeMatch) raceInfo.time = timeMatch[0];
+    // Race details (e.g. "Good To Yielding 3YO only 6f 63y Winner: €10,800 (18 runners)")
+    const bodyText = document.body.innerText;
 
-    return raceInfo;
+    // Date
+    const dateMatch = bodyText.match(/(\d{4}-\d{2}-\d{2})/);
+    if (dateMatch) info.date = dateMatch[1];
+
+    // Distance
+    const distMatch = bodyText.match(/(\d+[fmh]\s*\d*[yf]?|\d+\s*furlongs?|\d+\s*miles?)/i);
+    if (distMatch) info.distance = distMatch[0];
+
+    // Going
+    const goingMatch = bodyText.match(/(Good To (?:Firm|Yielding|Soft)|Good|Firm|Soft|Heavy|Yielding|Standard)/i);
+    if (goingMatch) info.going = goingMatch[0];
+
+    // Number of runners
+    const runnersMatch = bodyText.match(/\((\d+)\s*runners?\)/i);
+    if (runnersMatch) info.runners = runnersMatch[1];
+
+    return info;
   });
 }
 
-async function extractSectionalData(page) {
+async function clickTab(page, tabName) {
+  // Try multiple strategies to click the tab
+  const strategies = [
+    () => page.locator(`text="${tabName}"`).first(),
+    () => page.locator(`a:has-text("${tabName}")`).first(),
+    () => page.locator(`button:has-text("${tabName}")`).first(),
+    () => page.locator(`[role="tab"]:has-text("${tabName}")`).first(),
+    () => page.locator(`text="${tabName.toUpperCase()}"`).first(),
+  ];
+
+  for (const getLocator of strategies) {
+    try {
+      const el = getLocator();
+      if (await el.isVisible({ timeout: 2000 })) {
+        await el.click();
+        await delay(2000);
+        return true;
+      }
+    } catch {}
+  }
+  return false;
+}
+
+async function extractResultData(page) {
   return page.evaluate(() => {
     const data = { headers: [], rows: [] };
 
-    // Strategy 1: Find tables on the page
+    // Find any table on the page
     const tables = document.querySelectorAll('table');
     for (const table of tables) {
-      const headerCells = table.querySelectorAll('thead th, thead td, tr:first-child th, tr:first-child td');
-      const headers = Array.from(headerCells).map(c => c.textContent.trim());
+      const ths = table.querySelectorAll('thead th, thead td, tr:first-child th');
+      const headers = Array.from(ths).map(th => th.textContent.trim());
+      if (headers.length < 2) continue;
 
-      // Check if this looks like a sectional table
-      const headerText = headers.join(' ').toLowerCase();
-      const isSectional = headerText.includes('sectional') ||
-                          headerText.includes('time') ||
-                          headerText.includes('speed') ||
-                          headerText.includes('position') ||
-                          headerText.includes('furlong') ||
-                          headerText.includes('finish') ||
-                          headers.length >= 3;
-
-      if (headers.length >= 2) {
-        data.headers = headers;
-        const bodyRows = table.querySelectorAll('tbody tr, tr:not(:first-child)');
-        for (const row of bodyRows) {
-          const cells = Array.from(row.querySelectorAll('td, th')).map(c => c.textContent.trim());
-          if (cells.length > 0 && cells.some(c => c !== '')) {
-            data.rows.push(cells);
-          }
+      data.headers = headers;
+      const trs = table.querySelectorAll('tbody tr');
+      for (const tr of trs) {
+        const cells = Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim().replace(/\s+/g, ' '));
+        if (cells.length > 0 && cells.some(c => c !== '')) {
+          data.rows.push(cells);
         }
-        if (data.rows.length > 0) break;
       }
+      if (data.rows.length > 0) break;
     }
 
-    // Strategy 2: If no table found, look for structured div-based layouts
+    // If no table found, try div-based layout
     if (data.rows.length === 0) {
-      const containers = document.querySelectorAll('[class*="sectional"], [class*="Sectional"], [class*="timing"], [class*="split"]');
-      for (const container of containers) {
-        const text = container.innerText;
-        if (text.length > 20) {
-          data.rawText = text.substring(0, 3000);
-          break;
-        }
-      }
-    }
-
-    // Strategy 3: Grab all visible text in the main content area as fallback
-    if (data.rows.length === 0 && !data.rawText) {
-      const mainContent = document.querySelector('main, .main, .content, .race-result, [class*="result"]');
-      if (mainContent) {
-        data.rawText = mainContent.innerText.substring(0, 5000);
+      const container = document.querySelector('[class*="result"], [class*="Result"], main, .content');
+      if (container) {
+        data.rawText = container.innerText.substring(0, 5000);
       }
     }
 
@@ -328,90 +187,296 @@ async function extractSectionalData(page) {
   });
 }
 
-async function scrapeRace(page, raceUrl, raceIndex) {
-  console.log(`\n  [${raceIndex}] Scraping: ${raceUrl}`);
+async function extractRaceIQData(page) {
+  return page.evaluate(() => {
+    const data = { headers: [], rows: [] };
 
-  try {
-    await page.goto(raceUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-    await delay(3000);
-    await acceptCookies(page);
+    const tables = document.querySelectorAll('table');
+    for (const table of tables) {
+      const ths = table.querySelectorAll('thead th, thead td, tr:first-child th, tr:first-child td');
+      const headers = Array.from(ths).map(th => th.textContent.trim().replace(/\s+/g, ' '));
+      if (headers.length < 2) continue;
 
-    // Extract race metadata
-    const metadata = await extractRaceMetadata(page);
-    console.log(`    Race: ${metadata.heading || metadata.pageTitle}`);
-
-    // Click "Full Result" if available
-    await clickFullResult(page);
-
-    // Take screenshot of full result
-    await page.screenshot({
-      path: path.join(OUTPUT_DIR, `race_${raceIndex}_fullresult.png`),
-      fullPage: true
-    });
-
-    // Click "Sectionals" tab
-    const hasSectionals = await clickSectionals(page);
-
-    if (!hasSectionals) {
-      return { raceUrl, metadata, sectionals: null, hasSectionals: false };
+      data.headers = headers;
+      const trs = table.querySelectorAll('tbody tr, tr:not(:first-child)');
+      for (const tr of trs) {
+        const cells = Array.from(tr.querySelectorAll('td, th')).map(td => td.textContent.trim().replace(/\s+/g, ' '));
+        if (cells.length > 0 && cells.some(c => c !== '')) {
+          data.rows.push(cells);
+        }
+      }
+      if (data.rows.length > 0) break;
     }
 
-    // Wait for sectional data to load
-    await delay(2000);
+    // Fallback: structured div extraction
+    if (data.rows.length === 0) {
+      const container = document.querySelector('main, .content, [class*="comparison"], [class*="Comparison"]');
+      if (container) {
+        data.rawText = container.innerText.substring(0, 5000);
+      }
+    }
 
-    // Take screenshot of sectionals
+    return data;
+  });
+}
+
+async function extractSectionalData(page) {
+  return page.evaluate(() => {
+    const data = { headers: [], rows: [], meta: {} };
+
+    // Extract the meta info (Time Index, Meeting Avg, Vs.Par)
+    const bodyText = document.body.innerText;
+    const timeIdxMatch = bodyText.match(/Time Index[:\s]*([\d.\/]+)/i);
+    if (timeIdxMatch) data.meta.timeIndex = timeIdxMatch[1];
+
+    const meetAvgMatch = bodyText.match(/Meeting Avg[:\s]*([\d.]+)/i);
+    if (meetAvgMatch) data.meta.meetingAvg = meetAvgMatch[1];
+
+    const vsParMatch = bodyText.match(/Vs[.\s]*Par[:\s]*([+-]?[\d.]+s?)/i);
+    if (vsParMatch) data.meta.vsPar = vsParMatch[1];
+
+    // Find the sectionals table
+    const tables = document.querySelectorAll('table');
+    for (const table of tables) {
+      const ths = table.querySelectorAll('thead th, thead td, tr:first-child th, tr:first-child td');
+      const headers = Array.from(ths).map(th => th.textContent.trim().replace(/\s+/g, ' '));
+
+      // Check if this looks like a sectionals table (has furlong columns like 1f, 2f, etc.)
+      const headerText = headers.join(' ');
+      const hasFurlongs = /\d+f/.test(headerText) || headerText.includes('Total Time');
+
+      if (headers.length >= 3) {
+        data.headers = headers;
+        const trs = table.querySelectorAll('tbody tr, tr:not(:first-child)');
+        for (const tr of trs) {
+          const cells = Array.from(tr.querySelectorAll('td, th')).map(td => {
+            return td.textContent.trim().replace(/\s+/g, ' ');
+          });
+          if (cells.length > 0 && cells.some(c => c !== '')) {
+            data.rows.push(cells);
+          }
+        }
+        if (data.rows.length > 0 && hasFurlongs) break;
+      }
+    }
+
+    // Fallback: div-based rows (RacingTV might use divs instead of tables)
+    if (data.rows.length === 0) {
+      // Look for sectional-specific containers
+      const containers = document.querySelectorAll(
+        '[class*="sectional"], [class*="Sectional"], [class*="timing"], [class*="split"], [class*="furlong"]'
+      );
+      for (const container of containers) {
+        if (container.innerText.length > 30) {
+          data.rawText = container.innerText.substring(0, 5000);
+          break;
+        }
+      }
+      // Ultimate fallback
+      if (!data.rawText) {
+        const main = document.querySelector('main, .content');
+        if (main) data.rawText = main.innerText.substring(0, 5000);
+      }
+    }
+
+    return data;
+  });
+}
+
+async function findRaceTimeTabs(page) {
+  // On a race page, there are time tabs at the top (16:40, 17:10, 17:40, etc.)
+  return page.evaluate((base) => {
+    const tabs = [];
+    const anchors = document.querySelectorAll('a');
+    for (const a of anchors) {
+      const text = a.textContent.trim();
+      const href = a.getAttribute('href');
+      // Match time patterns like "16:40", "17:10"
+      if (/^\d{2}:\d{2}$/.test(text) && href) {
+        const fullHref = href.startsWith('http') ? href : base + href;
+        tabs.push({ time: text, href: fullHref });
+      }
+    }
+    return tabs;
+  }, BASE_URL);
+}
+
+async function scrapeRacePage(page, raceUrl, raceIndex) {
+  console.log(`\n  [Race ${raceIndex}] Loading: ${raceUrl}`);
+
+  await page.goto(raceUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await delay(3000);
+  await dismissCookies(page);
+
+  // Check if this page has multiple race time tabs
+  const timeTabs = await findRaceTimeTabs(page);
+  const races = [];
+
+  if (timeTabs.length > 1) {
+    console.log(`    Found ${timeTabs.length} race time tabs: ${timeTabs.map(t => t.time).join(', ')}`);
+
+    for (let t = 0; t < timeTabs.length; t++) {
+      const tab = timeTabs[t];
+      console.log(`\n    --- ${tab.time} ---`);
+
+      await page.goto(tab.href, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      await delay(2000);
+      await dismissCookies(page);
+
+      const raceData = await scrapeCurrentRace(page, `${raceIndex}_${t + 1}`, tab.time);
+      raceData.raceTime = tab.time;
+      raceData.raceUrl = tab.href;
+      races.push(raceData);
+
+      await delay(1000);
+    }
+  } else {
+    const raceData = await scrapeCurrentRace(page, raceIndex, '');
+    raceData.raceUrl = raceUrl;
+    races.push(raceData);
+  }
+
+  return races;
+}
+
+async function scrapeCurrentRace(page, raceIndex, timeLabel) {
+  const raceData = {
+    header: {},
+    result: null,
+    raceIQ: null,
+    sectionals: null,
+  };
+
+  // Extract header info
+  raceData.header = await extractRaceHeader(page);
+  console.log(`    Race: ${raceData.header.raceTitle || 'Unknown'}`);
+  if (raceData.header.raceName) console.log(`    Name: ${raceData.header.raceName}`);
+
+  // 1) RESULT tab (usually selected by default)
+  console.log('    > Extracting RESULT...');
+  const resultClicked = await clickTab(page, 'RESULT');
+  if (!resultClicked) await clickTab(page, 'Result');
+  await delay(1000);
+  raceData.result = await extractResultData(page);
+  console.log(`      Found ${raceData.result.rows?.length || 0} result rows`);
+
+  // 2) RACEiQ COMPARISON tab
+  console.log('    > Extracting RACEiQ COMPARISON...');
+  let raceIQClicked = await clickTab(page, 'RACEiQ COMPARISON');
+  if (!raceIQClicked) raceIQClicked = await clickTab(page, 'RACEIQ COMPARISON');
+  if (!raceIQClicked) raceIQClicked = await clickTab(page, 'RaceIQ');
+  if (!raceIQClicked) raceIQClicked = await clickTab(page, 'Comparison');
+
+  if (raceIQClicked) {
+    await delay(1500);
+    await page.screenshot({
+      path: path.join(OUTPUT_DIR, `race_${raceIndex}_raceiq.png`),
+      fullPage: true
+    });
+    raceData.raceIQ = await extractRaceIQData(page);
+    console.log(`      Found ${raceData.raceIQ.rows?.length || 0} RaceIQ rows`);
+    if (raceData.raceIQ.rawText) console.log(`      (raw text captured: ${raceData.raceIQ.rawText.length} chars)`);
+  } else {
+    console.log('      [skip] RACEiQ COMPARISON tab not found');
+  }
+
+  // 3) SECTIONALS tab
+  console.log('    > Extracting SECTIONALS...');
+  let secClicked = await clickTab(page, 'SECTIONALS');
+  if (!secClicked) secClicked = await clickTab(page, 'Sectionals');
+  if (!secClicked) secClicked = await clickTab(page, 'Sectional');
+
+  if (secClicked) {
+    await delay(1500);
     await page.screenshot({
       path: path.join(OUTPUT_DIR, `race_${raceIndex}_sectionals.png`),
       fullPage: true
     });
-
-    // Extract sectional data
-    const sectionals = await extractSectionalData(page);
-    console.log(`    Sectional headers: ${sectionals.headers?.join(', ') || 'none'}`);
-    console.log(`    Rows found: ${sectionals.rows?.length || 0}`);
-
-    return { raceUrl, metadata, sectionals, hasSectionals: true };
-
-  } catch (err) {
-    console.log(`    [error] ${err.message}`);
-    return { raceUrl, metadata: {}, sectionals: null, error: err.message };
+    raceData.sectionals = await extractSectionalData(page);
+    console.log(`      Meta: ${JSON.stringify(raceData.sectionals.meta)}`);
+    console.log(`      Headers: ${raceData.sectionals.headers?.join(', ') || 'none'}`);
+    console.log(`      Found ${raceData.sectionals.rows?.length || 0} sectional rows`);
+    if (raceData.sectionals.rawText) console.log(`      (raw text captured: ${raceData.sectionals.rawText.length} chars)`);
+  } else {
+    console.log('      [skip] SECTIONALS tab not found');
   }
+
+  return raceData;
 }
 
-function buildCSV(allRaces) {
+function buildSectionalsCSV(allRaces) {
   const lines = [];
-
-  // Determine all unique headers across races
-  let maxCols = 0;
   const csvRows = [];
 
   for (const race of allRaces) {
-    if (!race.sectionals || !race.sectionals.rows || race.sectionals.rows.length === 0) continue;
+    if (!race.sectionals?.rows?.length && !race.sectionals?.rawText) continue;
 
-    const raceLabel = race.metadata?.heading || race.metadata?.pageTitle || race.raceUrl;
-    const distance = race.metadata?.distance || '';
-    const time = race.metadata?.time || '';
-    const headers = race.sectionals.headers || [];
+    const label = race.header?.raceTitle || '';
+    const name = race.header?.raceName || '';
+    const date = race.header?.date || '';
+    const dist = race.header?.distance || '';
+    const going = race.header?.going || '';
+    const runners = race.header?.runners || '';
+    const timeIdx = race.sectionals?.meta?.timeIndex || '';
+    const meetAvg = race.sectionals?.meta?.meetingAvg || '';
+    const vsPar = race.sectionals?.meta?.vsPar || '';
 
-    for (const row of race.sectionals.rows) {
-      const csvRow = [raceLabel, distance, time, ...headers.map((h, i) => row[i] || '')];
-      if (row.length > headers.length) {
-        for (let i = headers.length; i < row.length; i++) {
-          csvRow.push(row[i]);
-        }
+    if (race.sectionals.rows?.length) {
+      for (const row of race.sectionals.rows) {
+        csvRows.push([date, label, name, dist, going, runners, timeIdx, meetAvg, vsPar, ...row]);
       }
-      csvRows.push(csvRow);
-      maxCols = Math.max(maxCols, csvRow.length);
     }
   }
 
-  // Build header line
-  const sampleHeaders = allRaces.find(r => r.sectionals?.headers?.length > 0)?.sectionals?.headers || [];
-  const headerLine = ['Race', 'Distance', 'Time', ...sampleHeaders];
-  while (headerLine.length < maxCols) headerLine.push(`Col${headerLine.length}`);
-  lines.push(headerLine.map(h => `"${h}"`).join(','));
+  if (csvRows.length === 0) return '';
 
-  // Build data lines
+  // Header
+  const maxCols = Math.max(...csvRows.map(r => r.length));
+  const sampleRace = allRaces.find(r => r.sectionals?.headers?.length);
+  const secHeaders = sampleRace?.sectionals?.headers || [];
+  const headerRow = ['Date', 'Race Title', 'Race Name', 'Distance', 'Going', 'Runners', 'Time Index', 'Meeting Avg', 'Vs Par', ...secHeaders];
+  while (headerRow.length < maxCols) headerRow.push(`Col${headerRow.length}`);
+
+  lines.push(headerRow.map(h => `"${h}"`).join(','));
+
+  for (const row of csvRows) {
+    while (row.length < maxCols) row.push('');
+    lines.push(row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
+  }
+
+  return lines.join('\n');
+}
+
+function buildRaceIQCSV(allRaces) {
+  const lines = [];
+  const csvRows = [];
+
+  for (const race of allRaces) {
+    if (!race.raceIQ?.rows?.length && !race.raceIQ?.rawText) continue;
+
+    const label = race.header?.raceTitle || '';
+    const name = race.header?.raceName || '';
+    const date = race.header?.date || '';
+    const dist = race.header?.distance || '';
+    const going = race.header?.going || '';
+
+    if (race.raceIQ.rows?.length) {
+      for (const row of race.raceIQ.rows) {
+        csvRows.push([date, label, name, dist, going, ...row]);
+      }
+    }
+  }
+
+  if (csvRows.length === 0) return '';
+
+  const maxCols = Math.max(...csvRows.map(r => r.length));
+  const sampleRace = allRaces.find(r => r.raceIQ?.headers?.length);
+  const iqHeaders = sampleRace?.raceIQ?.headers || [];
+  const headerRow = ['Date', 'Race Title', 'Race Name', 'Distance', 'Going', ...iqHeaders];
+  while (headerRow.length < maxCols) headerRow.push(`Col${headerRow.length}`);
+
+  lines.push(headerRow.map(h => `"${h}"`).join(','));
+
   for (const row of csvRows) {
     while (row.length < maxCols) row.push('');
     lines.push(row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(','));
@@ -421,16 +486,18 @@ function buildCSV(allRaces) {
 }
 
 async function main() {
-  console.log('=== Curragh Sectional Data Scraper ===');
+  console.log('=== Curragh Sectional & RaceIQ Scraper ===');
   console.log(`Headless: ${HEADLESS}`);
-  console.log(`Max races: ${MAX_RACES === Infinity ? 'unlimited' : MAX_RACES}`);
+  console.log(`Max races: ${MAX_RACES === Infinity ? 'unlimited' : MAX_RACES}\n`);
 
-  // Ensure output directory exists
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  const browser = await launchBrowser();
+  const browser = await chromium.launch({
+    headless: HEADLESS,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
@@ -438,99 +505,124 @@ async function main() {
   page.setDefaultTimeout(15000);
 
   try {
-    // Step 1: Get race meeting links from the Curragh results page
-    console.log('\n--- Step 1: Finding race meetings ---');
-    const meetingLinks = await getRaceMeetingLinks(page);
+    // Step 1: Find all "Full Result" links on the Curragh results page
+    console.log('--- Step 1: Finding Full Result links ---');
+    const fullResultLinks = await collectFullResultLinks(page);
 
-    // Step 2: For each meeting, find individual race links
-    console.log('\n--- Step 2: Finding individual races ---');
-    let allRaceLinks = [];
+    if (fullResultLinks.length === 0) {
+      console.log('\n  [!] No "Full Result" links found.');
+      console.log('  Check output/results_page.png to see what the page looks like.');
 
-    if (meetingLinks.length > 0) {
-      for (const meeting of meetingLinks) {
-        console.log(`\n  Checking meeting: ${meeting.text}`);
-        const raceLinks = await getRaceLinksFromMeeting(page, meeting.href);
-        console.log(`    Found ${raceLinks.length} race links`);
-        allRaceLinks.push(...raceLinks.map(r => ({ ...r, meeting: meeting.text })));
-      }
-    }
-
-    // Also check for direct race links on the main results page
-    const directLinks = await getIndividualRaceLinks(page);
-    if (directLinks.length > 0) {
-      console.log(`\n  Found ${directLinks.length} direct race links on results page`);
-      for (const dl of directLinks) {
-        if (!allRaceLinks.some(r => r.href === dl.href)) {
-          allRaceLinks.push(dl);
-        }
-      }
-    }
-
-    // If no links found via either method, dump page for manual inspection
-    if (allRaceLinks.length === 0) {
-      console.log('\n  [!] No race links found automatically.');
-      console.log('  Check output/step1_results_page.png and output/step1_page_text.txt');
-      console.log('  The page structure may have changed — update selectors in the script.');
-
-      // Try one more approach: grab ALL links on the page
-      const allLinks = await page.evaluate(() => {
-        return Array.from(document.querySelectorAll('a[href]')).map(a => ({
+      // Dump all links for debugging
+      const allLinks = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('a[href]')).map(a => ({
           href: a.getAttribute('href'),
           text: a.textContent.trim().replace(/\s+/g, ' ').substring(0, 100)
-        }));
-      });
-      fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'all_links_debug.json'),
-        JSON.stringify(allLinks, null, 2)
+        }))
       );
-      console.log(`  Dumped ${allLinks.length} links to output/all_links_debug.json for inspection`);
+      fs.writeFileSync(path.join(OUTPUT_DIR, 'debug_all_links.json'), JSON.stringify(allLinks, null, 2));
+      console.log(`  Dumped ${allLinks.length} links to output/debug_all_links.json`);
+
+      // Also dump full page text
+      const pageText = await page.evaluate(() => document.body.innerText);
+      fs.writeFileSync(path.join(OUTPUT_DIR, 'debug_page_text.txt'), pageText);
+
+      await browser.close();
+      return;
     }
 
-    console.log(`\n  Total race links to scrape: ${allRaceLinks.length}`);
+    // Limit
+    const linksToScrape = fullResultLinks.slice(0, MAX_RACES);
+    console.log(`\n  Will scrape ${linksToScrape.length} race pages`);
 
-    // Limit if MAX_RACES set
-    const racesToScrape = allRaceLinks.slice(0, MAX_RACES);
+    // Step 2: Scrape each race
+    console.log('\n--- Step 2: Scraping each race ---');
+    const allRaces = [];
 
-    // Step 3: Scrape each race
-    console.log('\n--- Step 3: Scraping sectional data ---');
-    const allResults = [];
-
-    for (let i = 0; i < racesToScrape.length; i++) {
-      const race = racesToScrape[i];
-      const result = await scrapeRace(page, race.href, i + 1);
-      if (race.meeting) result.meeting = race.meeting;
-      allResults.push(result);
-
-      // Be polite — small delay between requests
+    for (let i = 0; i < linksToScrape.length; i++) {
+      const link = linksToScrape[i];
+      try {
+        const races = await scrapeRacePage(page, link.href, i + 1);
+        allRaces.push(...races);
+      } catch (err) {
+        console.log(`  [error] Race ${i + 1}: ${err.message}`);
+        await page.screenshot({
+          path: path.join(OUTPUT_DIR, `error_race_${i + 1}.png`),
+          fullPage: true
+        });
+      }
       await delay(1500);
     }
 
-    // Step 4: Save results
-    console.log('\n--- Step 4: Saving results ---');
+    // Step 3: Save everything
+    console.log('\n--- Step 3: Saving data ---');
 
-    // Save full JSON
-    const jsonPath = path.join(OUTPUT_DIR, 'curragh_sectionals.json');
-    fs.writeFileSync(jsonPath, JSON.stringify(allResults, null, 2));
-    console.log(`  JSON saved to: ${jsonPath}`);
+    // Full JSON
+    const jsonPath = path.join(OUTPUT_DIR, 'curragh_all_data.json');
+    fs.writeFileSync(jsonPath, JSON.stringify(allRaces, null, 2));
+    console.log(`  JSON (all data): ${jsonPath}`);
 
-    // Save CSV
-    const csv = buildCSV(allResults);
-    const csvPath = path.join(OUTPUT_DIR, 'curragh_sectionals.csv');
-    fs.writeFileSync(csvPath, csv);
-    console.log(`  CSV saved to: ${csvPath}`);
+    // Sectionals CSV
+    const secCSV = buildSectionalsCSV(allRaces);
+    if (secCSV) {
+      const secPath = path.join(OUTPUT_DIR, 'curragh_sectionals.csv');
+      fs.writeFileSync(secPath, secCSV);
+      console.log(`  Sectionals CSV: ${secPath}`);
+    } else {
+      console.log('  [!] No sectional data found for CSV');
+    }
+
+    // RaceIQ CSV
+    const iqCSV = buildRaceIQCSV(allRaces);
+    if (iqCSV) {
+      const iqPath = path.join(OUTPUT_DIR, 'curragh_raceiq.csv');
+      fs.writeFileSync(iqPath, iqCSV);
+      console.log(`  RaceIQ CSV: ${iqPath}`);
+    } else {
+      console.log('  [!] No RaceIQ data found for CSV');
+    }
+
+    // Raw text fallback file (for any races where tables weren't parsed)
+    const rawRaces = allRaces.filter(r =>
+      (r.sectionals?.rawText && !r.sectionals?.rows?.length) ||
+      (r.raceIQ?.rawText && !r.raceIQ?.rows?.length)
+    );
+    if (rawRaces.length > 0) {
+      let rawOutput = '';
+      for (const r of rawRaces) {
+        rawOutput += `\n${'='.repeat(80)}\n`;
+        rawOutput += `RACE: ${r.header?.raceTitle || 'Unknown'}\n`;
+        rawOutput += `NAME: ${r.header?.raceName || ''}\n`;
+        rawOutput += `URL: ${r.raceUrl || ''}\n`;
+        if (r.raceIQ?.rawText) {
+          rawOutput += `\n--- RACEiQ COMPARISON ---\n${r.raceIQ.rawText}\n`;
+        }
+        if (r.sectionals?.rawText) {
+          rawOutput += `\n--- SECTIONALS ---\n${r.sectionals.rawText}\n`;
+        }
+      }
+      const rawPath = path.join(OUTPUT_DIR, 'curragh_raw_text.txt');
+      fs.writeFileSync(rawPath, rawOutput);
+      console.log(`  Raw text fallback: ${rawPath}`);
+    }
 
     // Summary
-    const withSectionals = allResults.filter(r => r.hasSectionals);
-    const withData = allResults.filter(r => r.sectionals?.rows?.length > 0);
-    console.log(`\n=== Summary ===`);
-    console.log(`  Total races scraped: ${allResults.length}`);
-    console.log(`  Races with sectionals tab: ${withSectionals.length}`);
-    console.log(`  Races with sectional data: ${withData.length}`);
-    console.log(`  Output directory: ${OUTPUT_DIR}`);
+    const withSec = allRaces.filter(r => r.sectionals?.rows?.length > 0).length;
+    const withIQ = allRaces.filter(r => r.raceIQ?.rows?.length > 0).length;
+    const withSecText = allRaces.filter(r => r.sectionals?.rawText).length;
+    const withIQText = allRaces.filter(r => r.raceIQ?.rawText).length;
+
+    console.log(`\n=== SUMMARY ===`);
+    console.log(`  Total races scraped: ${allRaces.length}`);
+    console.log(`  Sectional data (table): ${withSec}`);
+    console.log(`  Sectional data (raw text): ${withSecText}`);
+    console.log(`  RaceIQ data (table): ${withIQ}`);
+    console.log(`  RaceIQ data (raw text): ${withIQText}`);
+    console.log(`  Output: ${OUTPUT_DIR}`);
 
   } catch (err) {
     console.error('Fatal error:', err);
-    await page.screenshot({ path: path.join(OUTPUT_DIR, 'error_screenshot.png'), fullPage: true });
+    await page.screenshot({ path: path.join(OUTPUT_DIR, 'fatal_error.png'), fullPage: true }).catch(() => {});
   } finally {
     await browser.close();
   }
