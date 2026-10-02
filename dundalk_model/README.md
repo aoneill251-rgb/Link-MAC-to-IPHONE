@@ -89,6 +89,33 @@ Horse Racing Ireland results, or a paid data provider such as Proform,
 Timeform or Racing Post data. Check each source's terms before scraping or
 redistributing.
 
+## At The Races form guides
+
+The free ATR "PDF Form Guide" for a Dundalk meeting has the full card plus
+each runner's last six runs (SP, position, draw, beaten distance, rating,
+running comment). Import one with:
+
+```bash
+python -m dundalk.cli atr --pdf 20261002dunallcardsatrform...pdf
+```
+
+This prints a form digest for every race: forecast price, rating changes,
+rating vs last winning mark, days off, recent form, lengths beaten,
+Dundalk and all-weather record, and running style (from the comments).
+It also appends the card and the past runs to `data/atr_cards.csv` and
+`data/atr_history.csv`.
+
+One guide is **not enough to train the model**. Its past-run lines show
+only that day's runners, not the rest of each field. Importing the guide
+for every Dundalk meeting builds the dataset up, because each new guide
+fills in more runners from earlier Dundalk races. The proper route to a
+trained model is still a full results history with prices (see "Data you
+need").
+
+The parser needs `pdftotext` (poppler-utils). The PDFs are At The Races'
+copyright: keep them and the extracted data for personal use, out of
+public repositories (`data/` is git-ignored).
+
 ## Reading the backtest
 
 ```
@@ -150,6 +177,8 @@ dundalk/
   staking.py   fractional Kelly with risk limits
   backtest.py  walk-forward backtest and report
   synth.py     synthetic data generator (testing only)
+  atr_pdf.py   At The Races PDF form guide parser
+  digest.py    race-by-race form digest
   cli.py       command line
 tests/         leakage, gradient, staking and end-to-end tests
 templates/     example CSV layouts

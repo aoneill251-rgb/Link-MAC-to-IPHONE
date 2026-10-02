@@ -4,6 +4,7 @@
   python -m dundalk.cli backtest --results results.csv --out-dir reports/
   python -m dundalk.cli train    --results results.csv --model model.json
   python -m dundalk.cli predict  --results results.csv --card card.csv --model model.json --bank 500
+  python -m dundalk.cli atr      --pdf 20261002dun...pdf      (import an At The Races form guide)
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from . import backtest, data, features, synth
+from . import atr_pdf, backtest, data, digest, features, synth
 from .model import DundalkModel
 from .staking import StakingRules, place_bets
 
@@ -95,6 +96,28 @@ def cmd_predict(a):
         print("Only bet when the price available is at or above `odds`.")
 
 
+def _append(path, new, key):
+    if os.path.exists(path):
+        new = pd.concat([pd.read_csv(path), new], ignore_index=True)
+    new = new.drop_duplicates(key, keep="last")
+    new.to_csv(path, index=False)
+    return len(new)
+
+
+def cmd_atr(a):
+    date = a.date or atr_pdf.date_from_filename(os.path.basename(a.pdf))
+    if not date:
+        raise SystemExit("could not read the date from the file name; pass --date YYYY-MM-DD")
+    card, hist = atr_pdf.parse_pdf(a.pdf, date)
+    print(f"Parsed {len(card)} runners in {card['race_id'].nunique()} races and "
+          f"{len(hist)} past runs from {a.pdf}")
+    os.makedirs(a.data_dir, exist_ok=True)
+    n_h = _append(os.path.join(a.data_dir, "atr_history.csv"), hist, ["horse_id", "date"])
+    n_c = _append(os.path.join(a.data_dir, "atr_cards.csv"), card, ["race_id", "horse_id"])
+    print(f"{a.data_dir}/atr_history.csv now has {n_h} runs; atr_cards.csv has {n_c} card entries")
+    print(digest.format_digest(digest.build(card, pd.read_csv(os.path.join(a.data_dir, "atr_history.csv")))))
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="dundalk", description="Dundalk racing betting model")
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -133,6 +156,12 @@ def main(argv=None):
     s.add_argument("--bank", type=float, default=100.0)
     staking_args(s)
     s.set_defaults(fn=cmd_predict)
+
+    s = sub.add_parser("atr", help="import an At The Races PDF form guide and print a form digest")
+    s.add_argument("--pdf", required=True)
+    s.add_argument("--date", help="meeting date YYYY-MM-DD (default: read from the file name)")
+    s.add_argument("--data-dir", default="data", help="where the growing CSVs are kept")
+    s.set_defaults(fn=cmd_atr)
 
     a = p.parse_args(argv)
     a.fn(a)

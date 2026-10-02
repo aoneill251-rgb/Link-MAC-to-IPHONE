@@ -100,7 +100,13 @@ def prepare(df: pd.DataFrame) -> pd.DataFrame:
     else:
         df["is_aw"] = df["is_dundalk"]
     df["dist_band"] = df["distance_f"].map(distance_band)
-    df["field_size"] = df.groupby("race_id")["horse_id"].transform("count")
+    counted = df.groupby("race_id")["horse_id"].transform("count")
+    if "field_size" in df.columns:
+        # Sources such as form guides list only some of a race's runners
+        # but give the real number of runners.
+        df["field_size"] = pd.to_numeric(df["field_size"], errors="coerce").fillna(counted)
+    else:
+        df["field_size"] = counted
 
     # Outcomes. Rows with no finish_pos are future runners on a race card.
     has_result = df.groupby("race_id")["finish_pos"].transform(lambda s: s.notna().any())
