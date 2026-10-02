@@ -1,0 +1,7 @@
+__pycache__/
+.pytest_cache/
+reports/
+*.pkl
+model.json
+synthetic_results.csv
+data/

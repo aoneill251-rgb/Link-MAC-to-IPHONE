@@ -1,0 +1,3 @@
+race_id,date,off_time,course,surface,distance_f,race_type,race_class,horse_id,horse_name,age,sex,draw,weight_lbs,jockey_claim,official_rating,trainer,jockey,sp_decimal,bsp,early_price,finish_pos,beaten_lengths,win_time_s,early_pos
+DK20250103-1,2025-01-03,17:00,Dundalk,AW,7,Handicap,,example-horse-1,Example Horse One,4,g,3,133,0,62,Example Trainer A,Example Jockey A,4.5,4.9,5.0,1,0,86.10,2
+DK20250103-1,2025-01-03,17:00,Dundalk,AW,7,Handicap,,example-horse-2,Example Horse Two,5,m,9,128,3,57,Example Trainer B,Example Jockey B,7/1,8.6,8.0,2,0.75,86.10,6
